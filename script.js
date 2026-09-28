@@ -3,24 +3,23 @@ let cart = [];
 let selectedCustomer = null;
 let selectedServiceForOrder = null;
 
-// Cache data lokal dari Firebase agar sinkron
 let dbCashiers = [];
 let dbServices = [];
 let dbCustomers = [];
 let dbTransactions = [];
 
-// Inisialisasi & Listener Firebase
 window.addEventListener('DOMContentLoaded', () => {
-    // Beri jeda 1 detik untuk memastikan Firebase siap
-    setTimeout(() => {
-        initFirebaseListeners();
-    }, 500);
-
+    // Tampilkan tampilan awal seketika agar tidak infinite loading
     if (currentUser) {
         showKasirPage();
     } else {
         showLoginPage();
     }
+
+    // Sambungkan data Firebase secara asynchronous di latar belakang
+    setTimeout(() => {
+        initFirebaseListeners();
+    }, 300);
 });
 
 function initFirebaseListeners() {
@@ -31,7 +30,6 @@ function initFirebaseListeners() {
         if (snapshot.exists()) {
             dbCashiers = Object.entries(snapshot.val()).map(([key, val]) => ({ firebaseKey: key, ...val }));
         } else {
-            // Seed default admin jika kosong
             const defaultCashier = { username: 'admin', password: '123' };
             window.dbSet(window.dbRef(window.db, 'cashiers/admin'), defaultCashier);
         }
@@ -67,7 +65,7 @@ function initFirebaseListeners() {
     window.dbOnValue(window.dbRef(window.db, 'transactions'), (snapshot) => {
         if (snapshot.exists()) {
             dbTransactions = Object.entries(snapshot.val()).map(([key, val]) => ({ firebaseKey: key, ...val }));
-            dbTransactions.sort((a, b) => b.id.localeCompare(a.id)); // Urutkan terbaru
+            dbTransactions.sort((a, b) => b.id.localeCompare(a.id));
         } else {
             dbTransactions = [];
         }
@@ -91,7 +89,8 @@ function showKasirPage() {
     document.getElementById('page-pelanggan').classList.add('hidden');
     document.getElementById('page-riwayat').classList.add('hidden');
     document.getElementById('bottom-nav').classList.remove('hidden');
-    document.getElementById('current-cashier-label').innerText = currentUser;
+    const cashierLabel = document.getElementById('current-cashier-label');
+    if(cashierLabel) cashierLabel.innerText = currentUser;
     highlightNav('kasir');
     renderServicesForKasir();
 }
@@ -118,6 +117,7 @@ function switchTab(tabName) {
 function highlightNav(tab) {
     ['kasir', 'pelanggan', 'riwayat'].forEach(t => {
         const btn = document.getElementById(`nav-btn-${t}`);
+        if(!btn) return;
         if (t === tab) {
             btn.classList.remove('text-slate-400');
             btn.classList.add('text-blue-600');
@@ -128,13 +128,15 @@ function highlightNav(tab) {
     });
 }
 
-// Login & Pengaturan Kasir
 function handleLogin(e) {
     e.preventDefault();
     const user = document.getElementById('login-user').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
 
-    const found = dbCashiers.find(c => c.username === user && c.password === pass);
+    // Cek dari cache database kasir, jika kosong sediakan default admin/123
+    const found = dbCashiers.length > 0 
+        ? dbCashiers.find(c => c.username === user && c.password === pass)
+        : (user === 'admin' && pass === '123' ? { username: 'admin' } : null);
 
     if (found) {
         currentUser = user;
@@ -179,6 +181,7 @@ function closeSettingsModal() {
 
 function renderCashierList() {
     const container = document.getElementById('cashier-list-container');
+    if(!container) return;
     container.innerHTML = '';
 
     dbCashiers.forEach((c, index) => {
@@ -253,7 +256,6 @@ function deleteCashier(firebaseKey) {
     }
 }
 
-// Manajemen Pelanggan
 function openCustomerModal(firebaseKey = null) {
     document.getElementById('modal-customer').classList.remove('hidden');
     document.getElementById('form-customer').reset();
@@ -382,7 +384,6 @@ function deleteCustomer(firebaseKey) {
     }
 }
 
-// Manajemen Layanan & Keranjang
 function openServicesModal() {
     document.getElementById('modal-services').classList.remove('hidden');
     renderServicesManageList();
@@ -390,9 +391,12 @@ function openServicesModal() {
 
 function closeServicesModal() {
     document.getElementById('modal-services').classList.add('hidden');
-    document.getElementById('form-service').reset();
-    document.getElementById('serv-id').value = '';
-    document.getElementById('service-form-title').innerText = 'Tambah Layanan Baru';
+    const formServ = document.getElementById('form-service');
+    if(formServ) formServ.reset();
+    const servId = document.getElementById('serv-id');
+    if(servId) servId.value = '';
+    const servTitle = document.getElementById('service-form-title');
+    if(servTitle) servTitle.innerText = 'Tambah Layanan Baru';
     renderServicesForKasir();
 }
 
@@ -401,7 +405,16 @@ function renderServicesForKasir() {
     if (!grid) return;
     grid.innerHTML = '';
 
-    dbServices.forEach(s => {
+    const fallbackServices = [
+        { firebaseKey: '1', id: 1, name: 'Cuci Kiloan Reguler', price: 7000, unit: 'kg' },
+        { firebaseKey: '2', id: 2, name: 'Cuci + Setrika', price: 10000, unit: 'kg' },
+        { firebaseKey: '3', id: 3, name: 'Setrika Saja', price: 5000, unit: 'kg' },
+        { firebaseKey: '4', id: 4, name: 'Cuci Selimut / Bedcover', price: 25000, unit: 'pcs' }
+    ];
+
+    const servicesToRender = dbServices.length > 0 ? dbServices : fallbackServices;
+
+    servicesToRender.forEach(s => {
         const isSelected = selectedServiceForOrder && selectedServiceForOrder.firebaseKey === s.firebaseKey;
         grid.innerHTML += `
             <div onclick="selectServiceForOrder('${s.firebaseKey}')" class="p-3 rounded-xl border cursor-pointer transition ${isSelected ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-500' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'}">
@@ -413,12 +426,20 @@ function renderServicesForKasir() {
 }
 
 function selectServiceForOrder(firebaseKey) {
-    selectedServiceForOrder = dbServices.find(s => s.firebaseKey === firebaseKey);
+    const fallbackServices = [
+        { firebaseKey: '1', id: 1, name: 'Cuci Kiloan Reguler', price: 7000, unit: 'kg' },
+        { firebaseKey: '2', id: 2, name: 'Cuci + Setrika', price: 10000, unit: 'kg' },
+        { firebaseKey: '3', id: 3, name: 'Setrika Saja', price: 5000, unit: 'kg' },
+        { firebaseKey: '4', id: 4, name: 'Cuci Selimut / Bedcover', price: 25000, unit: 'pcs' }
+    ];
+    const pool = dbServices.length > 0 ? dbServices : fallbackServices;
+    selectedServiceForOrder = pool.find(s => s.firebaseKey === firebaseKey);
     renderServicesForKasir();
 }
 
 function renderServicesManageList() {
     const container = document.getElementById('services-manage-list');
+    if(!container) return;
     container.innerHTML = '';
 
     dbServices.forEach(s => {
@@ -481,13 +502,13 @@ function deleteService(firebaseKey) {
     }
 }
 
-// Keranjang & Checkout
 function addToCart() {
     if (!selectedServiceForOrder) {
         alert('Silakan pilih jenis layanan terlebih dahulu!');
         return;
     }
-    const qty = parseFloat(document.getElementById('input-qty').value);
+    const qtyInput = document.getElementById('input-qty');
+    const qty = parseFloat(qtyInput.value);
     if (!qty || qty <= 0) {
         alert('Masukkan berat atau jumlah yang valid!');
         return;
@@ -499,7 +520,7 @@ function addToCart() {
         cart[existingIndex].subtotal = cart[existingIndex].qty * cart[existingIndex].price;
     } else {
         cart.push({
-            serviceId: selectedServiceForOrder.id,
+            serviceId: selectedServiceForOrder.id || 1,
             name: selectedServiceForOrder.name,
             price: selectedServiceForOrder.price,
             unit: selectedServiceForOrder.unit,
@@ -509,7 +530,7 @@ function addToCart() {
     }
 
     renderCart();
-    document.getElementById('input-qty').value = '1';
+    qtyInput.value = '1';
 }
 
 function renderCart() {
@@ -590,7 +611,6 @@ function processCheckout() {
         total: totalPrice
     };
 
-    // Simpan ke Firebase Database
     window.dbSet(window.dbRef(window.db, 'transactions/' + transactionId), transaction)
         .then(() => {
             document.getElementById('receipt-id').innerText = transactionId;
@@ -619,11 +639,11 @@ function processCheckout() {
         });
 }
 
-// Riwayat Pesanan
 function renderTransactionHistory() {
     const container = document.getElementById('history-list-container');
     if (!container) return;
-    document.getElementById('total-transaksi-count').innerText = `${dbTransactions.length} Transaksi`;
+    const countEl = document.getElementById('total-transaksi-count');
+    if(countEl) countEl.innerText = `${dbTransactions.length} Transaksi`;
     container.innerHTML = '';
 
     if (dbTransactions.length === 0) {
