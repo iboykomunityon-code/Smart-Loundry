@@ -1,0 +1,79 @@
+/* Pengaturan Layout Mobile & Scroll Otomatis */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.app-shell {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+.screen-view {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.screen-view:not(.hidden) {
+    display: flex;
+}
+
+/* Mengaktifkan Scroll Halus pada Konten & Mencegah Stagnasi */
+.scroll-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Area Print Struk Thermal 58mm (1 Layer) */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #print-area, #print-area * {
+        visibility: visible;
+    }
+    #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 58mm;
+        display: block !important;
+        background: white;
+        color: black;
+        font-family: 'Courier New', Courier, monospace;
+        padding: 5mm;
+    }
+}
+
+.receipt-container {
+    width: 50mm;
+    margin: 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    color: black;
+    line-height: 1.2;
+}
+
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}

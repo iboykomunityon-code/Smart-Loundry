@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Laundry - Kasir Mobile</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK (Modular v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get, update, remove, onValue, push, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Ganti konfigurasi di bawah ini dengan konfigurasi Firebase Anda sendiri
+       const firebaseConfig = {
+            apiKey: "AIzaSyDWOgrk8JCx4PIlRBG46Cfp-xnz7ESpGE0",
+            authDomain: "smart-loundry-c3ea9.firebaseapp.com",
+            databaseURL: "https://smart-loundry-c3ea9-default-rtdb.asia-southeast1.firebasedatabase.app", // <-- Ditambahkan agar Realtime Database terhubung
+            projectId: "smart-loundry-c3ea9",
+            storageBucket: "smart-loundry-c3ea9.firebasestorage.app",
+            messagingSenderId: "1079052499496",
+            appId: "1:1079052499496:web:e069b2c7a9dc9fb1ce531d",
+            measurementId: "G-JYFV4P5WL1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+
+        // Simpan instance ke global agar bisa dipanggil di script.js
+        window.db = db;
+        window.dbRef = ref;
+        window.dbSet = set;
+        window.dbGet = get;
+        window.dbUpdate = update;
+        window.dbRemove = remove;
+        window.dbOnValue = onValue;
+        window.dbPush = push;
+        window.dbChild = child;
+    </script>
+
+    <!-- Hubungkan CSS Terpisah -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-900 flex justify-center items-center min-h-screen">
+
+    <!-- Container Utama Mobile Frame -->
+    <div class="app-shell w-full max-w-md bg-slate-100 min-h-screen relative flex flex-col shadow-2xl overflow-hidden">
+
+        <!-- ================= PAGE: LOGIN ================= -->
+        <section id="page-login" class="screen-view flex flex-col justify-center items-center p-6 bg-gradient-to-b from-blue-600 to-indigo-900 text-white z-30">
+            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg mb-6 overflow-hidden border-4 border-white/20">
+                <img src="Logo.png" alt="Logo Smart Laundry" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://via.placeholder.com/150/004aad/ffffff?text=SL';">
+            </div>
+            <h1 class="text-2xl font-bold tracking-wide">SMART LAUNDRY</h1>
+            <p class="text-xs text-blue-200 text-center mt-1 mb-8">Jl. Kp. Cijujung No.34, Sukaraja, Bogor</p>
+
+            <form id="form-login" onsubmit="handleLogin(event)" class="w-full space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-100 mb-1">Username Kasir</label>
+                    <input type="text" id="login-user" required placeholder="Masukkan username" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-100 mb-1">Password</label>
+                    <div class="relative">
+                        <input type="password" id="login-pass" required placeholder="Masukkan password" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white pr-10">
+                        <button type="button" onclick="togglePasswordVisibility('login-pass', this)" class="absolute right-3 top-3.5 text-blue-200 hover:text-white">
+                            <i class="fa-solid fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-white text-blue-700 font-bold rounded-xl shadow-lg hover:bg-blue-50 transition active:scale-95 mt-2">
+                    MASUK KASIR
+                </button>
+            </form>
+            <p class="text-[11px] text-blue-200 mt-6">Akses Awal: admin | Password: 123</p>
+        </section>
+
+
+        <!-- ================= PAGE: KASIR UTAMA ================= -->
+        <section id="page-kasir" class="screen-view hidden flex-col">
+            <header class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white rounded-full overflow-hidden border border-white/30 flex items-center justify-center">
+                        <img src="Logo.png" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150/004aad/ffffff?text=SL';">
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-sm leading-tight">Smart Laundry</h2>
+                        <p class="text-[10px] text-blue-200">Kasir: <span id="current-cashier-label" class="font-semibold">Admin</span></p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="openSettingsModal()" class="w-9 h-9 bg-blue-700 rounded-full flex items-center justify-center text-sm hover:bg-blue-800 transition"><i class="fa-solid fa-user-gear"></i></button>
+                    <button onclick="logout()" class="w-9 h-9 bg-red-600 rounded-full flex items-center justify-center text-sm hover:bg-red-700 transition"><i class="fa-solid fa-power-off"></i></button>
+                </div>
+            </header>
+
+            <div class="scroll-body flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Pencarian Pelanggan -->
+                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Data Pelanggan</label>
+                        <button onclick="openCustomerModal()" class="text-xs text-blue-600 font-semibold hover:underline">+ Tambah Pelanggan</button>
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="search-customer" oninput="filterCustomers()" placeholder="Ketik nama atau No. Telepon..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400 text-xs"></i>
+                    </div>
+                    <div id="customer-dropdown" class="hidden mt-2 max-h-40 overflow-y-auto border border-slate-100 rounded-xl bg-white shadow-inner divide-y divide-slate-100"></div>
+                    <div id="selected-customer-info" class="hidden mt-2 p-2.5 bg-blue-50 border border-blue-100 rounded-xl flex justify-between items-center">
+                        <div>
+                            <p class="text-xs font-bold text-blue-900" id="sel-cust-name">-</p>
+                            <p class="text-[10px] text-blue-600" id="sel-cust-phone">-</p>
+                        </div>
+                        <button onclick="resetSelectedCustomer()" class="text-xs text-red-500 hover:text-red-700"><i class="fa-solid fa-xmark text-base"></i></button>
+                    </div>
+                </div>
+
+                <!-- Layanan & Input Kg -->
+                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Pilih Layanan</label>
+                        <button onclick="openServicesModal()" class="text-xs text-blue-600 font-semibold hover:underline">Kelola Layanan</button>
+                    </div>
+                    <div id="services-grid" class="grid grid-cols-2 gap-2 mb-3"></div>
+                    <div class="mt-3 pt-3 border-t border-slate-100">
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Input Berat (Kg) / Satuan Manual</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="input-qty" step="0.1" min="0.1" value="1" class="w-24 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-center font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="addToCart()" class="flex-1 bg-blue-600 text-white text-xs font-bold py-2 px-4 rounded-xl hover:bg-blue-700 transition active:scale-95 shadow-md shadow-blue-200">
+                                <i class="fa-solid fa-cart-plus mr-1"></i> Masukkan Keranjang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keranjang -->
+                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Keranjang Pesanan</label>
+                        <button onclick="clearCart()" class="text-[11px] text-red-500 hover:underline">Kosongkan</button>
+                    </div>
+                    <div id="cart-items" class="divide-y divide-slate-100 max-h-48 overflow-y-auto mb-3">
+                        <p class="text-xs text-slate-400 text-center py-4">Keranjang masih kosong</p>
+                    </div>
+                    <div class="border-t border-slate-100 pt-3 space-y-1">
+                        <div class="flex justify-between text-xs text-slate-500">
+                            <span>Total Item:</span>
+                            <span id="cart-total-qty">0</span>
+                        </div>
+                        <div class="flex justify-between text-sm font-bold text-slate-800">
+                            <span>Total Harga:</span>
+                            <span id="cart-total-price" class="text-blue-600">Rp 0</span>
+                        </div>
+                    </div>
+                    <button onclick="processCheckout()" class="w-full mt-3 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-200 active:scale-95 transition">
+                        PROSES & CETAK STRUK
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE: DATA PELANGGAN ================= -->
+        <section id="page-pelanggan" class="screen-view hidden flex-col">
+            <header class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md shrink-0">
+                <h2 class="font-bold text-sm">Manajemen Pelanggan</h2>
+                <button onclick="openCustomerModal()" class="text-xs bg-white text-blue-700 px-3 py-1.5 rounded-lg font-bold shadow">+ Tambah</button>
+            </header>
+            <div class="scroll-body p-4 flex-1 overflow-y-auto space-y-3">
+                <input type="text" id="search-customer-page" oninput="renderCustomerList()" placeholder="Cari pelanggan..." class="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div id="customer-list-container" class="space-y-2 pb-6"></div>
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE: RIWAYAT PESANAN ================= -->
+        <section id="page-riwayat" class="screen-view hidden flex-col">
+            <header class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md shrink-0">
+                <h2 class="font-bold text-sm">Riwayat Transaksi</h2>
+                <span class="text-xs text-blue-200" id="total-transaksi-count">0 Transaksi</span>
+            </header>
+            <div class="scroll-body p-4 flex-1 overflow-y-auto space-y-3 pb-6" id="history-list-container"></div>
+        </section>
+
+
+        <!-- ================= BOTTOM NAVIGATION BAR ================= -->
+        <nav id="bottom-nav" class="hidden bg-white border-t border-slate-200 flex justify-around py-3 shadow-lg shrink-0 z-20">
+            <button onclick="switchTab('kasir')" id="nav-btn-kasir" class="flex flex-col items-center text-blue-600 text-xs font-semibold">
+                <i class="fa-solid fa-cash-register text-lg mb-0.5"></i> Kasir
+            </button>
+            <button onclick="switchTab('pelanggan')" id="nav-btn-pelanggan" class="flex flex-col items-center text-slate-400 text-xs font-semibold hover:text-slate-600">
+                <i class="fa-solid fa-users text-lg mb-0.5"></i> Pelanggan
+            </button>
+            <button onclick="switchTab('riwayat')" id="nav-btn-riwayat" class="flex flex-col items-center text-slate-400 text-xs font-semibold hover:text-slate-600">
+                <i class="fa-solid fa-clock-rotate-left text-lg mb-0.5"></i> Riwayat
+            </button>
+        </nav>
+
+
+        <!-- ================= MODALS & POPUPS ================= -->
+        <div id="modal-customer" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+            <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-sm text-slate-800" id="customer-modal-title">Tambah Pelanggan Baru</h3>
+                    <button onclick="closeCustomerModal()" class="w-7 h-7 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form id="form-customer" onsubmit="saveCustomer(event)" class="space-y-3">
+                    <input type="hidden" id="cust-edit-id">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Lengkap</label>
+                        <input type="text" id="cust-name" required placeholder="Nama pelanggan" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nomor Telepon / WhatsApp</label>
+                        <input type="text" id="cust-phone" required placeholder="Contoh: 08123456789" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Alamat (Opsi)</label>
+                        <textarea id="cust-address" placeholder="Alamat lengkap..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 h-20 resize-none"></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition">Simpan Pelanggan</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="modal-services" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+            <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-sm text-slate-800">Manajemen Layanan Laundry</h3>
+                    <button onclick="closeServicesModal()" class="w-7 h-7 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="space-y-3 border-b pb-3">
+                    <h4 class="text-[11px] font-bold text-slate-600 uppercase" id="service-form-title">Tambah Layanan Baru</h4>
+                    <form id="form-service" onsubmit="saveService(event)" class="space-y-2">
+                        <input type="hidden" id="serv-id">
+                        <input type="text" id="serv-name" required placeholder="Nama Layanan (Cth: Cuci Kiloan)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="serv-price" required placeholder="Harga (Rp)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                            <input type="text" id="serv-unit" required placeholder="Satuan (kg/pcs)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                        </div>
+                        <button type="submit" class="w-full py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700">Simpan Layanan</button>
+                    </form>
+                </div>
+                <div class="flex-1 overflow-y-auto space-y-2" id="services-manage-list"></div>
+            </div>
+        </div>
+
+        <div id="modal-settings" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+            <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-sm text-slate-800">Pengaturan Kasir & Akses</h3>
+                    <button onclick="closeSettingsModal()" class="w-7 h-7 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2">
+                    <h4 class="text-xs font-bold text-slate-700">Tambah Kasir Baru</h4>
+                    <form onsubmit="addCashier(event)" class="space-y-2">
+                        <input type="text" id="new-cashier-user" required placeholder="Username baru" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs">
+                        <div class="relative">
+                            <input type="password" id="new-cashier-pass" required placeholder="Password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs pr-8">
+                            <button type="button" onclick="togglePasswordVisibility('new-cashier-pass', this)" class="absolute right-2.5 top-2 text-slate-400 text-xs"><i class="fa-solid fa-eye-slash"></i></button>
+                        </div>
+                        <button type="submit" class="w-full py-2 bg-slate-800 text-white text-xs font-bold rounded-lg hover:bg-slate-900">Tambah Kasir</button>
+                    </form>
+                </div>
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold text-slate-700">Daftar Akun Kasir</h4>
+                    <div id="cashier-list-container" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PRINT STRUK (THERMAL 58MM) ================= -->
+        <div id="print-area" class="hidden">
+            <div class="receipt-container">
+                <div class="text-center font-bold text-sm mb-1">SMART LAUNDRY</div>
+                <div class="text-center text-[10px] mb-2 leading-tight">
+                    Jl. Kp. Cijujung No.34, RT.1/RW.4, Cijujung,<br>
+                    Kec. Sukaraja, Kab. Bogor, Jabar 16710
+                </div>
+                <div class="border-b border-dashed border-black my-1"></div>
+                <div class="text-[10px] space-y-0.5">
+                    <div>No. Nota: <span id="receipt-id">-</span></div>
+                    <div>Tanggal: <span id="receipt-date">-</span></div>
+                    <div>Kasir: <span id="receipt-cashier">-</span></div>
+                    <div>Pelanggan: <span id="receipt-customer">-</span></div>
+                </div>
+                <div class="border-b border-dashed border-black my-1"></div>
+                <div id="receipt-items-list" class="text-[10px] space-y-1"></div>
+                <div class="border-b border-dashed border-black my-1"></div>
+                <div class="text-[10px] space-y-1 font-bold">
+                    <div class="flex justify-between">
+                        <span>TOTAL:</span>
+                        <span id="receipt-total">Rp 0</span>
+                    </div>
+                </div>
+                <div class="border-b border-dashed border-black my-1"></div>
+                <div class="text-center text-[9px] mt-2">
+                    Terima Kasih Atas Kepercayaan Anda<br>
+                    Pakaian Bersih & Wangi Bersama Smart Laundry
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Hubungkan JS Terpisah -->
+    <script src="script.js"></script>
+</body>
+</html>
