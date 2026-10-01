@@ -39,7 +39,7 @@
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
-    <!-- STYLESHEET PRINT THERMAL 58mm -->
+    <!-- STYLESHEET PRINT THERMAL 58mm (Dioptimalkan Hitam Putih & Mudah Dipahami) -->
     <style>
         #print-area {
             display: none;
@@ -58,11 +58,14 @@
                 top: 0 !important;
                 width: 58mm !important;
                 margin: 0 !important;
-                padding: 4mm !important;
+                padding: 3mm 2mm !important;
                 font-family: 'Courier New', Courier, monospace !important;
                 font-size: 11px !important;
+                line-height: 1.25 !important;
                 color: black !important;
                 background: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
         }
     </style>
@@ -292,26 +295,42 @@
             </button>
         </nav>
 
-        <!-- Struk Print Area (Thermal 58mm dengan Logo Brand) -->
+        <!-- Struk Print Area (Thermal 58mm - Dioptimalkan Hitam Putih & Mudah Dipahami) -->
         <div id="print-area">
             <div style="text-align: center; margin-bottom: 6px;">
-                <img src="Logo.png" alt="Logo" onerror="this.style.display='none'" style="width: 40px; height: 40px; margin: 0 auto 4px auto; object-fit: contain; display: block;">
+                <img src="Logo.png" alt="Logo" onerror="this.style.display='none'" style="width: 38px; height: 38px; margin: 0 auto 3px auto; object-fit: contain; display: block; filter: grayscale(100%);">
                 <div style="font-weight: bold; font-size: 13px; letter-spacing: 0.5px;">SMART LAUNDRY</div>
                 <div style="font-size: 9px; line-height: 1.2;">Jl. Kp. Cijujung No.34, Sukaraja, Bogor</div>
             </div>
-            <div style="border-top: 1px dashed black; margin: 5px 0;"></div>
+            
+            <div style="border-top: 1px dashed black; margin: 4px 0;"></div>
+            
             <div id="print-info" style="font-size: 10px; line-height: 1.3; margin-bottom: 4px;"></div>
-            <div style="border-top: 1px dashed black; margin: 5px 0;"></div>
-            <div id="print-items" style="font-size: 10px; line-height: 1.4; margin-bottom: 4px;"></div>
-            <div style="border-top: 1px dashed black; margin: 5px 0;"></div>
-            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 11px;">
-                <span>TOTAL:</span>
+            
+            <div style="border-top: 1px dashed black; margin: 4px 0;"></div>
+            
+            <!-- Header Kolom Barang -->
+            <div style="font-size: 9px; font-weight: bold; margin-bottom: 2px; display: flex; justify-content: space-between;">
+                <span>LAYANAN / QTY</span>
+                <span>SUBTOTAL</span>
+            </div>
+            
+            <div id="print-items" style="font-size: 10px; line-height: 1.35; margin-bottom: 4px;"></div>
+            
+            <div style="border-top: 1px dashed black; margin: 4px 0;"></div>
+            
+            <!-- Total & Pembayaran -->
+            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 12px; margin-top: 2px;">
+                <span>TOTAL :</span>
                 <span id="print-total"></span>
             </div>
-            <div style="border-top: 1px dashed black; margin: 5px 0;"></div>
+            
+            <div style="border-top: 1px dashed black; margin: 4px 0;"></div>
+            
             <div style="text-align: center; font-size: 9px; margin-top: 6px; line-height: 1.3;">
-                <div>Terima Kasih</div>
-                <div>Pakaian Bersih & Wangi!</div>
+                <div style="font-weight: bold;">TERIMA KASIH</div>
+                <div>Pakaian Bersih, Rapi & Wangi!</div>
+                <div style="font-size: 8px; margin-top: 3px; color: #333;">Simpan struk ini sebagai bukti pengambilan</div>
             </div>
         </div>
 
@@ -868,17 +887,23 @@
 
         function cetakStruk(trx) {
             document.getElementById('print-info').innerHTML = `
-                <div>No: ${trx.id}</div>
-                <div>Tgl: ${trx.tanggal}</div>
-                <div>Kasir: ${trx.kasir}</div>
-                <div>Pelanggan: ${trx.pelanggan.nama}</div>
+                <div style="display: flex; justify-content: space-between;"><span>No. Nota :</span><span>${trx.id}</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>Tanggal  :</span><span>${trx.tanggal}</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>Kasir    :</span><span>${trx.kasir}</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>Pelanggan:</span><span>${trx.pelanggan.nama}</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>No. Telp :</span><span>${trx.pelanggan.telp}</span></div>
             `;
+            
             document.getElementById('print-items').innerHTML = trx.items.map(i => `
-                <div style="display: flex; justify-content: space-between;">
-                    <span>${i.namaLayanan} (${i.qty} ${i.satuan})</span>
-                    <span>${i.subtotal.toLocaleString()}</span>
+                <div style="margin-bottom: 3px;">
+                    <div style="font-weight: bold;">${i.namaLayanan}</div>
+                    <div style="display: flex; justify-content: space-between; padding-left: 6px;">
+                        <span>${i.qty} ${i.satuan} x ${i.harga.toLocaleString()}</span>
+                        <span style="font-weight: bold;">${i.subtotal.toLocaleString()}</span>
+                    </div>
                 </div>
             `).join('');
+
             document.getElementById('print-total').innerText = 'Rp ' + trx.total.toLocaleString();
 
             window.print();
