@@ -166,12 +166,16 @@
             <!-- TAB 2: PELANGGAN -->
             <div id="tab-pelanggan" class="space-y-4 tab-content hidden">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-sm text-slate-900 mb-3">Tambah Pelanggan Baru</h3>
-                    <form onsubmit="tambahPelanggan(event)" class="space-y-3">
+                    <h3 id="pelanggan-form-title" class="font-bold text-sm text-slate-900 mb-3">Tambah Pelanggan Baru</h3>
+                    <form onsubmit="simpanPelanggan(event)" class="space-y-3">
+                        <input type="hidden" id="pel-id">
                         <input type="text" id="pel-nama" placeholder="Nama Lengkap" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
                         <input type="tel" id="pel-telp" placeholder="Nomor Telepon / WhatsApp" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
                         <textarea id="pel-alamat" placeholder="Alamat Pelanggan" rows="2" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"></textarea>
-                        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold">Simpan Pelanggan</button>
+                        <div class="flex space-x-2">
+                            <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold">Simpan Pelanggan</button>
+                            <button type="button" onclick="resetFormPelanggan()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold">Batal</button>
+                        </div>
                     </form>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-3">
@@ -552,20 +556,48 @@
             info.classList.remove('hidden');
         }
 
-        async function tambahPelanggan(e) {
+        async function simpanPelanggan(e) {
             e.preventDefault();
-            if(!confirm('Konfirmasi: Tambah data pelanggan baru?')) return;
+            if(!confirm('Konfirmasi: Simpan data pelanggan?')) return;
 
+            const id = document.getElementById('pel-id').value;
             const newPel = {
                 nama: document.getElementById('pel-nama').value,
                 telp: document.getElementById('pel-telp').value,
                 alamat: document.getElementById('pel-alamat').value
             };
-            const newRef = rtdb.push(rtdb.ref(db, 'pelanggan'));
-            await rtdb.set(newRef, newPel);
-            e.target.reset();
-            renderPelangganList();
-            alert('Pelanggan berhasil ditambah!');
+
+            try {
+                if (id) {
+                    await rtdb.update(rtdb.ref(db, 'pelanggan/' + id), newPel);
+                    alert('Data pelanggan berhasil diperbarui!');
+                } else {
+                    const newRef = rtdb.push(rtdb.ref(db, 'pelanggan'));
+                    await rtdb.set(newRef, newPel);
+                    alert('Pelanggan berhasil ditambahkan!');
+                }
+                resetFormPelanggan();
+                renderPelangganList();
+            } catch (err) {
+                alert('Gagal menyimpan pelanggan: ' + err.message);
+            }
+        }
+
+        function editPelanggan(id, nama, telp, alamat) {
+            document.getElementById('pel-id').value = id;
+            document.getElementById('pel-nama').value = nama;
+            document.getElementById('pel-telp').value = telp;
+            document.getElementById('pel-alamat').value = alamat;
+            document.getElementById('pelanggan-form-title').innerText = 'Edit Pelanggan';
+            document.getElementById('tab-pelanggan').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetFormPelanggan() {
+            document.getElementById('pel-id').value = '';
+            document.getElementById('pel-nama').value = '';
+            document.getElementById('pel-telp').value = '';
+            document.getElementById('pel-alamat').value = '';
+            document.getElementById('pelanggan-form-title').innerText = 'Tambah Pelanggan Baru';
         }
 
         async function renderPelangganList() {
@@ -621,7 +653,10 @@
                             <div class="font-bold">${p.nama}</div>
                             <div class="text-xs text-slate-500">${p.telp} | ${p.alamat}</div>
                         </div>
-                        <button onclick="hapusPelanggan('${p._fbKey}')" class="text-red-500 text-xs px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                        <div class="flex space-x-1">
+                            <button onclick="editPelanggan('${p._fbKey}', '${p.nama}', '${p.telp}', '${p.alamat}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="hapusPelanggan('${p._fbKey}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
+                        </div>
                     </div>
                 `;
             });
