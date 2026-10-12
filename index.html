@@ -260,8 +260,21 @@
                 </div>
             </div>
 
-            <!-- TAB 5: PENGATURAN AKUN KASIR -->
+            <!-- TAB 5: PENGATURAN AKUN KASIR & LOGO -->
             <div id="tab-pengaturan" class="space-y-4 tab-content hidden">
+                
+                <!-- UPLOAD LOGO STRUK -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-3">
+                    <h3 class="font-bold text-sm text-slate-900">Pengaturan Logo Struk</h3>
+                    <p class="text-xs text-slate-500">Unggah logo toko Anda (disarankan gambar persegi / 1:1).</p>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 border border-slate-200 rounded-lg flex items-center justify-center bg-slate-50 overflow-hidden">
+                            <img id="preview-logo-setting" src="Logo.png" alt="Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23cbd5e1\' stroke-width=\'2\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><path d=\'M21 15l-5-5L5 21\'/></svg>'" class="w-full h-full object-contain">
+                        </div>
+                        <input type="file" id="input-logo-file" accept="image/*" onchange="handleUploadLogo(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer">
+                    </div>
+                </div>
+
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <h3 id="akun-form-title" class="font-bold text-sm text-slate-900 mb-3">Tambah Akun Kasir Baru</h3>
                     <form onsubmit="simpanAkunKasir(event)" class="space-y-3">
@@ -283,10 +296,6 @@
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <h3 class="font-bold text-sm text-slate-900 mb-3">Daftar Akun Kasir</h3>
                     <div id="list-akun-data" class="space-y-2 text-sm max-h-48 overflow-y-auto"></div>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-xs text-slate-600 space-y-2">
-                    <h4 class="font-bold text-slate-900">Catatan Logo Struk</h4>
-                    <p>Letakkan file gambar berasio 1:1 dengan nama <code>Logo.png</code> dalam satu folder yang sama dengan file aplikasi web ini.</p>
                 </div>
             </div>
 
@@ -311,7 +320,7 @@
         <!-- Struk Print Area (Thermal 58mm - Dioptimalkan Hitam Putih & Mudah Dipahami) -->
         <div id="print-area">
             <div style="text-align: center; margin-bottom: 6px;">
-                <img src="Logo.png" alt="Logo" onerror="this.style.display='none'" style="width: 38px; height: 38px; margin: 0 auto 3px auto; object-fit: contain; display: block; filter: grayscale(100%);">
+                <img id="print-logo-img" src="Logo.png" alt="Logo" onerror="this.style.display='none'" style="width: 38px; height: 38px; margin: 0 auto 3px auto; object-fit: contain; display: block; filter: grayscale(100%);">
                 <div style="font-weight: bold; font-size: 13px; letter-spacing: 0.5px;">SMART LAUNDRY</div>
                 <div style="font-size: 9px; line-height: 1.2;">Jl. Kp. Cijujung No.34, Sukaraja, Bogor</div>
             </div>
@@ -354,17 +363,17 @@
         let cart = [];
         let selectedPelangganObj = null;
         let db, rtdb;
-        let riwayatCache = {}; // Cache objek transaksi untuk cetak ulang
-        let allRiwayatData = []; // Cache list riwayat untuk pencarian
-        let allPelangganData = []; // Cache list pelanggan untuk pencarian & sort
-        let allLayananData = []; // Cache list layanan untuk urutan
+        let riwayatCache = {}; 
+        let allRiwayatData = []; 
+        let allPelangganData = []; 
+        let allLayananData = []; 
 
         window.addEventListener('firebase-ready', async () => {
             db = window.db;
             rtdb = window.fbRTDB;
 
-            // Inisialisasi data default jika database kosong
             await seedDefaultDataIfNeeded();
+            loadLogoFromDatabase();
 
             if (localStorage.getItem('sl_is_logged') === 'true') {
                 document.getElementById('section-login').classList.add('hidden');
@@ -396,6 +405,49 @@
             } catch (e) {
                 console.error("Gagal seed data:", e);
             }
+        }
+
+        // --- MANAJEMEN LOGO ---
+        async function handleUploadLogo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 1024 * 1024) { // Batasi max 1MB
+                alert('Ukuran file terlalu besar! Maksimal 1MB.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64String = e.target.result;
+                try {
+                    // Simpan string base64 logo ke database Firebase pada node 'settings/logo'
+                    await rtdb.set(rtdb.ref(db, 'settings/logo'), base64String);
+                    applyLogoToUI(base64String);
+                    alert('Logo berhasil diunggah dan disimpan!');
+                } catch (err) {
+                    alert('Gagal menyimpan logo ke database: ' + err.message);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function loadLogoFromDatabase() {
+            try {
+                const snap = await rtdb.get(rtdb.ref(db, 'settings/logo'));
+                if (snap.exists()) {
+                    applyLogoToUI(snap.val());
+                }
+            } catch (e) {
+                console.error("Gagal memuat logo:", e);
+            }
+        }
+
+        function applyLogoToUI(base64Str) {
+            const previewSetting = document.getElementById('preview-logo-setting');
+            const printLogo = document.getElementById('print-logo-img');
+            if (previewSetting) previewSetting.src = base64Str;
+            if (printLogo) printLogo.src = base64Str;
         }
 
         async function handleLogin(e) {
@@ -449,7 +501,6 @@
                 }
             });
 
-            // Refresh data otomatis saat tab dibuka
             if (tabId === 'riwayat') {
                 renderRiwayatList();
             } else if (tabId === 'pelanggan') {
@@ -465,6 +516,7 @@
             renderLayananList();
             renderRiwayatList();
             renderAkunList();
+            loadLogoFromDatabase();
         }
 
         // AKUN KASIR
@@ -600,12 +652,11 @@
                 nama: document.getElementById('pel-nama').value,
                 telp: document.getElementById('pel-telp').value,
                 alamat: document.getElementById('pel-alamat').value,
-                timestamp: id ? undefined : Date.now() // Pertahankan timestamp jika edit, set baru jika tambah
+                timestamp: id ? undefined : Date.now()
             };
 
             try {
                 if (id) {
-                    // Jangan Timpa timestamp lama jika ada
                     delete newPel.timestamp;
                     await rtdb.update(rtdb.ref(db, 'pelanggan/' + id), newPel);
                     alert('Data pelanggan berhasil diperbarui!');
@@ -679,7 +730,6 @@
                 });
             }
 
-            // Proses Sorting
             filtered.sort((a, b) => {
                 if (sortOption === 'terbaru') {
                     return (b.timestamp || 0) - (a.timestamp || 0);
@@ -733,7 +783,6 @@
                     l._id = childSnap.key;
                     items.push(l);
                 });
-                // Urutkan berdasarkan properti 'order' jika ada
                 items.sort((a, b) => (a.order || 0) - (b.order || 0));
             }
 
@@ -766,7 +815,6 @@
             if (id) {
                 await rtdb.update(rtdb.ref(db, 'layanan/' + id), { nama, harga, satuan });
             } else {
-                // Tentukan order berikutnya agar ada di posisi paling bawah
                 const snap = await rtdb.get(rtdb.ref(db, 'layanan'));
                 let maxOrder = 0;
                 if (snap.exists()) {
@@ -812,7 +860,6 @@
                     l._id = childSnap.key;
                     allLayananData.push(l);
                 });
-                // Urutkan berdasarkan order
                 allLayananData.sort((a, b) => (a.order || 0) - (b.order || 0));
             }
 
@@ -830,7 +877,6 @@
                             <div class="text-xs text-blue-600 font-medium">Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'}</div>
                         </div>
                         <div class="flex items-center space-x-1">
-                            <!-- Tombol Atur Posisi (Naik / Turun) -->
                             <div class="flex flex-col mr-1">
                                 <button onclick="geserLayanan(${index}, -1)" ${index === 0 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-up"></i></button>
                                 <button onclick="geserLayanan(${index}, 1)" ${index === allLayananData.length - 1 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-down"></i></button>
@@ -844,17 +890,14 @@
             container.innerHTML = html;
         }
 
-        // Fungsi menggeser urutan layanan (atas/bawah)
         async function geserLayanan(index, direction) {
             const targetIndex = index + direction;
             if (targetIndex < 0 || targetIndex >= allLayananData.length) return;
 
-            // Tukar posisi elemen di dalam array lokal
             let temp = allLayananData[index];
             allLayananData[index] = allLayananData[targetIndex];
             allLayananData[targetIndex] = temp;
 
-            // Perbarui nilai urutan (order) berdasarkan indeks baru dan simpan ke Firebase
             try {
                 const updates = {};
                 allLayananData.forEach((item, idx) => {
@@ -862,7 +905,6 @@
                 });
                 await rtdb.update(rtdb.ref(db, 'layanan'), updates);
                 
-                // Refresh tampilan list dan dropdown kasir
                 renderLayananList();
                 renderLayananSelect();
             } catch (err) {
@@ -903,7 +945,7 @@
             };
 
             cart.push(item);
-            document.getElementById('input-qty').value = ''; // Kosongkan kembali setelah ditambah
+            document.getElementById('input-qty').value = ''; 
             renderCart();
         }
 
@@ -1036,22 +1078,19 @@
                 }
 
                 allRiwayatData = [];
-                riwayatCache = {}; // Reset cache
+                riwayatCache = {}; 
 
                 snap.forEach(childSnap => {
                     const val = childSnap.val();
                     const key = childSnap.key;
-                    val._fbKey = key; // Simpan key firebase untuk hapus
+                    val._fbKey = key; 
                     allRiwayatData.push(val);
                     if (val.id) {
                         riwayatCache[val.id] = val;
                     }
                 });
 
-                // Urutkan dari yang terbaru berdasarkan timestamp
                 allRiwayatData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
-                // Tampilkan berdasarkan nilai pencarian saat ini
                 filterRiwayat();
             } catch (err) {
                 console.error("Gagal ambil riwayat:", err);
