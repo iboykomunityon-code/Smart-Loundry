@@ -93,7 +93,6 @@
                 </div>
                 <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition">Masuk Kasir</button>
             </form>
-            <p class="text-center text-xs text-slate-400 mt-6"> </p>
         </div>
     </div>
 
@@ -120,7 +119,6 @@
             
             <!-- TAB 1: KASIR -->
             <div id="tab-kasir" class="space-y-4 tab-content">
-                <!-- Cari / Pilih Pelanggan -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 relative">
                     <div class="flex justify-between items-center mb-1">
                         <label class="block text-xs font-bold text-slate-500 uppercase">1. Cari Pelanggan</label>
@@ -136,23 +134,19 @@
                     <div id="selected-pelanggan-info" class="mt-2 text-xs text-blue-600 font-medium hidden"></div>
                 </div>
 
-                <!-- Input Layanan & Jumlah -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-3">
                     <label class="block text-xs font-bold text-slate-500 uppercase">2. Pilih Layanan & Jumlah</label>
                     <div>
                         <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Pilih Layanan</label>
                         <select id="select-layanan" onchange="updateSatuanLabel()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
                     </div>
-                    
                     <div>
                         <label id="label-qty-input" class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Jumlah / Kuantitas (Kg)</label>
                         <input type="number" id="input-qty" step="0.1" min="0.1" placeholder="Masukkan jumlah..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-
                     <button onclick="tambahKeKeranjang()" class="w-full bg-slate-900 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition">Tambah ke Keranjang</button>
                 </div>
 
-                <!-- Keranjang Pesanan -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <h3 class="text-xs font-bold text-slate-500 uppercase mb-3">3. Keranjang Pesanan</h3>
                     <div id="cart-list" class="divide-y divide-slate-100 max-h-48 overflow-y-auto text-sm">
@@ -186,13 +180,9 @@
                         <h3 class="font-bold text-sm text-slate-900">Daftar Pelanggan</h3>
                         <button onclick="renderPelangganList()" class="text-xs text-blue-600 font-medium hover:underline"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
                     </div>
-                    
-                    <!-- Fitur Pencarian & Sort Pelanggan -->
                     <div class="flex space-x-2">
                         <div class="relative flex-1">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                            </span>
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
                             <input type="text" id="search-pelanggan-list" oninput="filterPelangganList()" placeholder="Cari nama/telp..." class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <select id="sort-pelanggan" onchange="filterPelangganList()" class="px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -202,7 +192,6 @@
                             <option value="za">Nama (Z - A)</option>
                         </select>
                     </div>
-
                     <div id="list-pelanggan-data" class="space-y-2 text-sm max-h-60 overflow-y-auto"></div>
                 </div>
             </div>
@@ -215,7 +204,7 @@
                         <input type="hidden" id="layanan-id">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Layanan</label>
-                            <input type="text" id="layanan-nama" placeholder="Cth: Cuci Satuan Jas / Cuci Kering" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                            <input type="text" id="layanan-nama" placeholder="Cth: Cuci Kering" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
@@ -224,7 +213,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Satuan Layanan</label>
-                                <input type="text" id="layanan-satuan" placeholder="Cth: Kg / Pcs / Meter" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
+                                <input type="text" id="layanan-satuan" placeholder="Kg / Pcs" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
                             </div>
                         </div>
                         <div class="flex space-x-2 pt-1">
@@ -249,27 +238,22 @@
                         <h3 class="font-bold text-sm text-slate-900">Riwayat Pesanan</h3>
                         <button onclick="renderRiwayatList()" class="text-xs text-blue-600 font-medium hover:underline"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
                     </div>
-                    <!-- Input Pencarian Riwayat -->
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </span>
-                        <input type="text" id="search-riwayat" oninput="filterRiwayat()" placeholder="Cari nama pelanggan, no. TRX, atau kasir..." class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" id="search-riwayat" oninput="filterRiwayat()" placeholder="Cari nama pelanggan, no. TRX..." class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div id="list-riwayat" class="space-y-3 text-sm max-h-96 overflow-y-auto"></div>
                 </div>
             </div>
 
-            <!-- TAB 5: PENGATURAN AKUN KASIR & LOGO -->
+            <!-- TAB 5: PENGATURAN -->
             <div id="tab-pengaturan" class="space-y-4 tab-content hidden">
-                
-                <!-- UPLOAD LOGO STRUK -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-3">
                     <h3 class="font-bold text-sm text-slate-900">Pengaturan Logo Struk</h3>
-                    <p class="text-xs text-slate-500">Unggah logo toko Anda (disarankan gambar persegi / 1:1).</p>
+                    <p class="text-xs text-slate-500">Unggah logo toko Anda (otomatis tampil di struk cetak).</p>
                     <div class="flex items-center space-x-3">
                         <div class="w-12 h-12 border border-slate-200 rounded-lg flex items-center justify-center bg-slate-50 overflow-hidden">
-                            <img id="preview-logo-setting" src="Logo.png" alt="Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23cbd5e1\' stroke-width=\'2\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><path d=\'M21 15l-5-5L5 21\'/></svg>'" class="w-full h-full object-contain">
+                            <img id="preview-logo-setting" alt="Logo" class="w-full h-full object-contain">
                         </div>
                         <input type="file" id="input-logo-file" accept="image/*" onchange="handleUploadLogo(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer">
                     </div>
@@ -303,45 +287,33 @@
 
         <!-- Bottom Navigation Bar -->
         <nav class="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30 flex justify-around py-2">
-            <button onclick="switchTab('kasir')" class="nav-btn flex flex-col items-center text-blue-600 text-xs font-medium" data-target="kasir">
-                <i class="fa-solid fa-cash-register text-base"></i> Kasir
-            </button>
-            <button onclick="switchTab('pelanggan')" class="nav-btn flex flex-col items-center text-slate-400 text-xs font-medium" data-target="pelanggan">
-                <i class="fa-solid fa-users text-base"></i> Pelanggan
-            </button>
-            <button onclick="switchTab('layanan')" class="nav-btn flex flex-col items-center text-slate-400 text-xs font-medium" data-target="layanan">
-                <i class="fa-solid fa-tags text-base"></i> Layanan
-            </button>
-            <button onclick="switchTab('riwayat')" class="nav-btn flex flex-col items-center text-slate-400 text-xs font-medium" data-target="riwayat">
-                <i class="fa-solid fa-clock-rotate-left text-base"></i> Riwayat
-            </button>
+            <button onclick="switchTab('kasir')" class="nav-btn flex flex-col items-center text-blue-600 text-xs font-medium" data-target="kasir"><i class="fa-solid fa-cash-register text-base"></i> Kasir</button>
+            <button onclick="switchTab('pelanggan')" class="nav-btn flex flex-col items-center text-slate-400 text-xs font-medium" data-target="pelanggan"><i class="fa-solid fa-users text-base"></i> Pelanggan</button>
+            <button onclick="switchTab('layanan')" class="nav-btn flex flex-col items-center text-slate-400 text-xs font-medium" data-target="layanan"><i class="fa-solid fa-tags text-base"></i> Layanan</button>
+            <button onclick="switchTab('riwayat')" class="nav-btn flex flex-col items-center text-slate-400 text-xs font-medium" data-target="riwayat"><i class="fa-solid fa-clock-rotate-left text-base"></i> Riwayat</button>
         </nav>
 
-        <!-- Struk Print Area (Thermal 58mm - Dioptimalkan Hitam Putih & Mudah Dipahami) -->
+        <!-- Struk Print Area (Thermal 58mm) -->
         <div id="print-area">
             <div style="text-align: center; margin-bottom: 6px;">
-                <img id="print-logo-img" src="Logo.png" alt="Logo" onerror="this.style.display='none'" style="width: 38px; height: 38px; margin: 0 auto 3px auto; object-fit: contain; display: block; filter: grayscale(100%);">
+                <!-- LOGO OTOMATIS MUNCUL DI NOTA -->
+                <img id="print-logo-img" alt="Logo" style="width: 38px; height: 38px; margin: 0 auto 3px auto; object-fit: contain; display: block; filter: grayscale(100%);">
                 <div style="font-weight: bold; font-size: 13px; letter-spacing: 0.5px;">SMART LAUNDRY</div>
                 <div style="font-size: 9px; line-height: 1.2;">Jl. Kp. Cijujung No.34, Sukaraja, Bogor</div>
             </div>
             
             <div style="border-top: 1px dashed black; margin: 4px 0;"></div>
-            
             <div id="print-info" style="font-size: 10px; line-height: 1.3; margin-bottom: 4px;"></div>
-            
             <div style="border-top: 1px dashed black; margin: 4px 0;"></div>
             
-            <!-- Header Kolom Barang -->
             <div style="font-size: 9px; font-weight: bold; margin-bottom: 2px; display: flex; justify-content: space-between;">
                 <span>LAYANAN / QTY</span>
                 <span>SUBTOTAL</span>
             </div>
             
             <div id="print-items" style="font-size: 10px; line-height: 1.35; margin-bottom: 4px;"></div>
-            
             <div style="border-top: 1px dashed black; margin: 4px 0;"></div>
             
-            <!-- Total & Pembayaran -->
             <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 12px; margin-top: 2px;">
                 <span>TOTAL :</span>
                 <span id="print-total"></span>
@@ -352,13 +324,11 @@
             <div style="text-align: center; font-size: 9px; margin-top: 6px; line-height: 1.3;">
                 <div style="font-weight: bold;">TERIMA KASIH</div>
                 <div>Pakaian Bersih, Rapi & Wangi!</div>
-                <div style="font-size: 8px; margin-top: 3px; color: #333;">Simpan struk ini sebagai bukti pengambilan</div>
             </div>
         </div>
 
     </div>
 
-    <!-- JavaScript Aplikasi Terhubung Firebase Realtime Database -->
     <script>
         let cart = [];
         let selectedPelangganObj = null;
@@ -407,26 +377,22 @@
             }
         }
 
-        // --- MANAJEMEN LOGO ---
         async function handleUploadLogo(event) {
             const file = event.target.files[0];
             if (!file) return;
-
-            if (file.size > 1024 * 1024) { // Batasi max 1MB
+            if (file.size > 1024 * 1024) {
                 alert('Ukuran file terlalu besar! Maksimal 1MB.');
                 return;
             }
-
             const reader = new FileReader();
             reader.onload = async function(e) {
                 const base64String = e.target.result;
                 try {
-                    // Simpan string base64 logo ke database Firebase pada node 'settings/logo'
                     await rtdb.set(rtdb.ref(db, 'settings/logo'), base64String);
                     applyLogoToUI(base64String);
                     alert('Logo berhasil diunggah dan disimpan!');
                 } catch (err) {
-                    alert('Gagal menyimpan logo ke database: ' + err.message);
+                    alert('Gagal menyimpan logo: ' + err.message);
                 }
             };
             reader.readAsDataURL(file);
@@ -447,7 +413,10 @@
             const previewSetting = document.getElementById('preview-logo-setting');
             const printLogo = document.getElementById('print-logo-img');
             if (previewSetting) previewSetting.src = base64Str;
-            if (printLogo) printLogo.src = base64Str;
+            if (printLogo) {
+                printLogo.src = base64Str;
+                printLogo.style.display = 'block';
+            }
         }
 
         async function handleLogin(e) {
@@ -464,7 +433,6 @@
                         if (data.user === u && data.pass === p) found = data;
                     });
                 }
-
                 if (found) {
                     localStorage.setItem('sl_is_logged', 'true');
                     localStorage.setItem('sl_current_user', found.user);
@@ -476,7 +444,7 @@
                     alert('Username atau Password salah!');
                 }
             } catch (err) {
-                alert('Gagal login ke database: ' + err.message);
+                alert('Gagal login: ' + err.message);
             }
         }
 
@@ -501,13 +469,9 @@
                 }
             });
 
-            if (tabId === 'riwayat') {
-                renderRiwayatList();
-            } else if (tabId === 'pelanggan') {
-                renderPelangganList();
-            } else if (tabId === 'layanan') {
-                renderLayananList();
-            }
+            if (tabId === 'riwayat') renderRiwayatList();
+            else if (tabId === 'pelanggan') renderPelangganList();
+            else if (tabId === 'layanan') renderLayananList();
         }
 
         function loadDataToUI() {
@@ -519,11 +483,9 @@
             loadLogoFromDatabase();
         }
 
-        // AKUN KASIR
         async function simpanAkunKasir(e) {
             e.preventDefault();
-            if(!confirm('Konfirmasi: Simpan data akun kasir ini?')) return;
-
+            if(!confirm('Simpan data akun kasir ini?')) return;
             const id = document.getElementById('akun-doc-id').value;
             const u = document.getElementById('new-acc-user').value;
             const p = document.getElementById('new-acc-pass').value;
@@ -537,18 +499,17 @@
                 }
                 resetFormAkun();
                 renderAkunList();
-                alert('Data akun kasir berhasil disimpan!');
+                alert('Akun berhasil disimpan!');
             } catch (err) {
                 alert('Gagal menyimpan: ' + err.message);
             }
         }
 
-        async function editAkun(id, u, p) {
+        function editAkun(id, u, p) {
             document.getElementById('akun-doc-id').value = id;
             document.getElementById('new-acc-user').value = u;
             document.getElementById('new-acc-pass').value = p;
             document.getElementById('akun-form-title').innerText = 'Edit Akun Kasir';
-            document.getElementById('tab-pengaturan').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function resetFormAkun() {
@@ -593,13 +554,11 @@
                 alert('Minimal harus ada 1 akun kasir!');
                 return;
             }
-            if(!confirm('Konfirmasi: Hapus akun kasir ini?')) return;
-
+            if(!confirm('Hapus akun ini?')) return;
             await rtdb.remove(rtdb.ref(db, 'accounts/' + id));
             renderAkunList();
         }
 
-        // PELANGGAN
         async function filterPelanggan() {
             const queryText = document.getElementById('search-pelanggan').value.toLowerCase();
             const drop = document.getElementById('dropdown-pelanggan');
@@ -607,7 +566,6 @@
                 drop.classList.add('hidden');
                 return;
             }
-
             const snap = await rtdb.get(rtdb.ref(db, 'pelanggan'));
             let filtered = [];
             if (snap.exists()) {
@@ -619,7 +577,6 @@
                     }
                 });
             }
-
             if (filtered.length > 0) {
                 drop.innerHTML = filtered.map(p => `
                     <div onclick='pilihPelanggan(${JSON.stringify(p)})' class="p-2 hover:bg-slate-50 cursor-pointer text-xs border-b border-slate-100">
@@ -645,8 +602,7 @@
 
         async function simpanPelanggan(e) {
             e.preventDefault();
-            if(!confirm('Konfirmasi: Simpan data pelanggan?')) return;
-
+            if(!confirm('Simpan data pelanggan?')) return;
             const id = document.getElementById('pel-id').value;
             const newPel = {
                 nama: document.getElementById('pel-nama').value,
@@ -654,21 +610,19 @@
                 alamat: document.getElementById('pel-alamat').value,
                 timestamp: id ? undefined : Date.now()
             };
-
             try {
                 if (id) {
                     delete newPel.timestamp;
                     await rtdb.update(rtdb.ref(db, 'pelanggan/' + id), newPel);
-                    alert('Data pelanggan berhasil diperbarui!');
                 } else {
                     const newRef = rtdb.push(rtdb.ref(db, 'pelanggan'));
                     await rtdb.set(newRef, newPel);
-                    alert('Pelanggan berhasil ditambahkan!');
                 }
                 resetFormPelanggan();
                 renderPelangganList();
+                alert('Pelanggan berhasil disimpan!');
             } catch (err) {
-                alert('Gagal menyimpan pelanggan: ' + err.message);
+                alert('Gagal: ' + err.message);
             }
         }
 
@@ -678,7 +632,6 @@
             document.getElementById('pel-telp').value = telp;
             document.getElementById('pel-alamat').value = alamat;
             document.getElementById('pelanggan-form-title').innerText = 'Edit Pelanggan';
-            document.getElementById('tab-pelanggan').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function resetFormPelanggan() {
@@ -691,27 +644,23 @@
 
         async function renderPelangganList() {
             const container = document.getElementById('list-pelanggan-data');
-            container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Memuat daftar pelanggan...</p>`;
-
+            container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Memuat...</p>`;
             try {
                 const snap = await rtdb.get(rtdb.ref(db, 'pelanggan'));
                 if (!snap.exists()) {
                     allPelangganData = [];
-                    container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Belum ada data pelanggan</p>`;
+                    container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Belum ada pelanggan</p>`;
                     return;
                 }
-
                 allPelangganData = [];
                 snap.forEach(childSnap => {
                     const p = childSnap.val();
                     p._fbKey = childSnap.key;
                     allPelangganData.push(p);
                 });
-
                 filterPelangganList();
             } catch (err) {
-                console.error("Gagal ambil pelanggan:", err);
-                container.innerHTML = `<p class="text-red-400 text-center py-4 text-xs">Gagal memuat pelanggan</p>`;
+                container.innerHTML = `<p class="text-red-400 text-center py-4 text-xs">Gagal memuat</p>`;
             }
         }
 
@@ -722,57 +671,42 @@
 
             let filtered = allPelangganData;
             if (keyword) {
-                filtered = allPelangganData.filter(p => {
-                    const nama = (p.nama || '').toLowerCase();
-                    const telp = (p.telp || '').toLowerCase();
-                    const alamat = (p.alamat || '').toLowerCase();
-                    return nama.includes(keyword) || telp.includes(keyword) || alamat.includes(keyword);
-                });
+                filtered = allPelangganData.filter(p => (p.nama || '').toLowerCase().includes(keyword) || (p.telp || '').includes(keyword));
             }
 
             filtered.sort((a, b) => {
-                if (sortOption === 'terbaru') {
-                    return (b.timestamp || 0) - (a.timestamp || 0);
-                } else if (sortOption === 'terlama') {
-                    return (a.timestamp || 0) - (b.timestamp || 0);
-                } else if (sortOption === 'az') {
-                    return (a.nama || '').localeCompare(b.nama || '');
-                } else if (sortOption === 'za') {
-                    return (b.nama || '').localeCompare(a.nama || '');
-                }
+                if (sortOption === 'terbaru') return (b.timestamp || 0) - (a.timestamp || 0);
+                if (sortOption === 'terlama') return (a.timestamp || 0) - (b.timestamp || 0);
+                if (sortOption === 'az') return (a.nama || '').localeCompare(b.nama || '');
+                if (sortOption === 'za') return (b.nama || '').localeCompare(a.nama || '');
                 return 0;
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Tidak ada pelanggan yang cocok</p>`;
+                container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Tidak ada data</p>`;
                 return;
             }
 
-            let html = '';
-            filtered.forEach(p => {
-                html += `
-                    <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center">
-                        <div>
-                            <div class="font-bold">${p.nama}</div>
-                            <div class="text-xs text-slate-500">${p.telp} | ${p.alamat}</div>
-                        </div>
-                        <div class="flex space-x-1">
-                            <button onclick="editPelanggan('${p._fbKey}', '${p.nama}', '${p.telp}', '${p.alamat}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="hapusPelanggan('${p._fbKey}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+            container.innerHTML = filtered.map(p => `
+                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center">
+                    <div>
+                        <div class="font-bold">${p.nama}</div>
+                        <div class="text-xs text-slate-500">${p.telp} | ${p.alamat}</div>
                     </div>
-                `;
-            });
-            container.innerHTML = html;
+                    <div class="flex space-x-1">
+                        <button onclick="editPelanggan('${p._fbKey}', '${p.nama}', '${p.telp}', '${p.alamat}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="hapusPelanggan('${p._fbKey}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         async function hapusPelanggan(id) {
-            if(!confirm('Konfirmasi: Hapus data pelanggan ini?')) return;
+            if(!confirm('Hapus pelanggan ini?')) return;
             await rtdb.remove(rtdb.ref(db, 'pelanggan/' + id));
             renderPelangganList();
         }
 
-        // LAYANAN
         async function renderLayananSelect() {
             const snap = await rtdb.get(rtdb.ref(db, 'layanan'));
             const select = document.getElementById('select-layanan');
@@ -785,28 +719,19 @@
                 });
                 items.sort((a, b) => (a.order || 0) - (b.order || 0));
             }
-
-            let html = items.map(l => `
-                <option value="${l._id}" data-harga="${l.harga}" data-satuan="${l.satuan || 'Kg'}">${l.nama} (Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'})</option>
-            `).join('');
-
-            select.innerHTML = html;
+            select.innerHTML = items.map(l => `<option value="${l._id}" data-harga="${l.harga}" data-satuan="${l.satuan || 'Kg'}">${l.nama} (Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'})</option>`).join('');
             updateSatuanLabel();
         }
 
         function updateSatuanLabel() {
             const select = document.getElementById('select-layanan');
             const opt = select.options[select.selectedIndex];
-            if (opt) {
-                const satuan = opt.dataset.satuan;
-                document.getElementById('label-qty-input').innerText = `Jumlah / Kuantitas (${satuan})`;
-            }
+            if (opt) document.getElementById('label-qty-input').innerText = `Jumlah / Kuantitas (${opt.dataset.satuan})`;
         }
 
         async function simpanLayanan(e) {
             e.preventDefault();
-            if(!confirm('Konfirmasi: Simpan data layanan?')) return;
-
+            if(!confirm('Simpan layanan?')) return;
             const id = document.getElementById('layanan-id').value;
             const nama = document.getElementById('layanan-nama').value;
             const harga = parseInt(document.getElementById('layanan-harga').value);
@@ -826,20 +751,18 @@
                 const newRef = rtdb.push(rtdb.ref(db, 'layanan'));
                 await rtdb.set(newRef, { nama, harga, satuan, order: maxOrder + 1 });
             }
-
             resetFormLayanan();
             renderLayananList();
             renderLayananSelect();
-            alert('Layanan berhasil disimpan!');
+            alert('Layanan disimpan!');
         }
 
-        async function editLayanan(id, nama, harga, satuan) {
+        function editLayanan(id, nama, harga, satuan) {
             document.getElementById('layanan-id').value = id;
             document.getElementById('layanan-nama').value = nama;
             document.getElementById('layanan-harga').value = harga;
             document.getElementById('layanan-satuan').value = satuan || 'Kg';
             document.getElementById('layanan-form-title').innerText = 'Edit Layanan';
-            document.getElementById('tab-layanan').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function resetFormLayanan() {
@@ -862,90 +785,69 @@
                 });
                 allLayananData.sort((a, b) => (a.order || 0) - (b.order || 0));
             }
-
             if (allLayananData.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Belum ada data layanan</p>`;
+                container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Belum ada layanan</p>`;
                 return;
             }
-
-            let html = '';
-            allLayananData.forEach((l, index) => {
-                html += `
-                    <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center">
-                        <div>
-                            <div class="font-bold">${l.nama}</div>
-                            <div class="text-xs text-blue-600 font-medium">Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'}</div>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <div class="flex flex-col mr-1">
-                                <button onclick="geserLayanan(${index}, -1)" ${index === 0 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-up"></i></button>
-                                <button onclick="geserLayanan(${index}, 1)" ${index === allLayananData.length - 1 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-down"></i></button>
-                            </div>
-                            <button onclick="editLayanan('${l._id}', '${l.nama}', ${l.harga}, '${l.satuan || 'Kg'}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="hapusLayanan('${l._id}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+            container.innerHTML = allLayananData.map((l, index) => `
+                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center">
+                    <div>
+                        <div class="font-bold">${l.nama}</div>
+                        <div class="text-xs text-blue-600 font-medium">Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'}</div>
                     </div>
-                `;
-            });
-            container.innerHTML = html;
+                    <div class="flex items-center space-x-1">
+                        <div class="flex flex-col mr-1">
+                            <button onclick="geserLayanan(${index}, -1)" ${index === 0 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-up"></i></button>
+                            <button onclick="geserLayanan(${index}, 1)" ${index === allLayananData.length - 1 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-down"></i></button>
+                        </div>
+                        <button onclick="editLayanan('${l._id}', '${l.nama}', ${l.harga}, '${l.satuan || 'Kg'}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="hapusLayanan('${l._id}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         async function geserLayanan(index, direction) {
             const targetIndex = index + direction;
             if (targetIndex < 0 || targetIndex >= allLayananData.length) return;
-
             let temp = allLayananData[index];
             allLayananData[index] = allLayananData[targetIndex];
             allLayananData[targetIndex] = temp;
-
             try {
                 const updates = {};
-                allLayananData.forEach((item, idx) => {
-                    updates[item._id + '/order'] = idx + 1;
-                });
+                allLayananData.forEach((item, idx) => { updates[item._id + '/order'] = idx + 1; });
                 await rtdb.update(rtdb.ref(db, 'layanan'), updates);
-                
                 renderLayananList();
                 renderLayananSelect();
             } catch (err) {
-                alert('Gagal mengubah urutan layanan: ' + err.message);
+                alert('Gagal mengubah urutan: ' + err.message);
             }
         }
 
         async function hapusLayanan(id) {
-            if(!confirm('Konfirmasi: Hapus data layanan ini?')) return;
+            if(!confirm('Hapus layanan ini?')) return;
             await rtdb.remove(rtdb.ref(db, 'layanan/' + id));
             renderLayananList();
             renderLayananSelect();
         }
 
-        // KERANJANG & TRANSAKSI
         function tambahKeKeranjang() {
             const select = document.getElementById('select-layanan');
             const opt = select.options[select.selectedIndex];
-            if (!opt) {
-                alert('Pilih layanan terlebih dahulu!');
-                return;
-            }
+            if (!opt) { alert('Pilih layanan!'); return; }
             const qtyInput = document.getElementById('input-qty').value;
             const qty = parseFloat(qtyInput);
+            if (!qtyInput || isNaN(qty) || qty <= 0) { alert('Jumlah tidak valid!'); return; }
 
-            if (!qtyInput || isNaN(qty) || qty <= 0) {
-                alert('Masukkan jumlah kuantitas yang valid!');
-                return;
-            }
-
-            const item = {
+            cart.push({
                 idLayanan: opt.value,
                 namaLayanan: opt.text.split(' (Rp')[0],
                 harga: parseInt(opt.dataset.harga),
                 qty: qty,
                 satuan: opt.dataset.satuan,
                 subtotal: parseInt(opt.dataset.harga) * qty
-            };
-
-            cart.push(item);
-            document.getElementById('input-qty').value = ''; 
+            });
+            document.getElementById('input-qty').value = '';
             renderCart();
         }
 
@@ -956,7 +858,6 @@
                 document.getElementById('cart-total').innerText = 'Rp 0';
                 return;
             }
-
             let total = 0;
             container.innerHTML = cart.map((c, idx) => {
                 total += c.subtotal;
@@ -968,7 +869,7 @@
                         </div>
                         <div class="flex items-center space-x-2">
                             <span class="font-bold">Rp ${c.subtotal.toLocaleString()}</span>
-                            <button onclick="hapusItemCart(${idx})" class="text-red-500"><i class="fa-solid fa-xmark"></i></button>
+                            <button onclick="cart.splice(${idx},1);renderCart()" class="text-red-500"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                     </div>
                 `;
@@ -976,21 +877,10 @@
             document.getElementById('cart-total').innerText = 'Rp ' + total.toLocaleString();
         }
 
-        function hapusItemCart(idx) {
-            cart.splice(idx, 1);
-            renderCart();
-        }
-
         async function prosesTransaksi() {
-            if (!selectedPelangganObj) {
-                alert('Pilih pelanggan terlebih dahulu!');
-                return;
-            }
-            if (cart.length === 0) {
-                alert('Keranjang masih kosong!');
-                return;
-            }
-            if (!confirm('Konfirmasi: Proses transaksi dan cetak struk?')) return;
+            if (!selectedPelangganObj) { alert('Pilih pelanggan!'); return; }
+            if (cart.length === 0) { alert('Keranjang kosong!'); return; }
+            if (!confirm('Proses transaksi & cetak struk?')) return;
 
             const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
             const transaksi = {
@@ -1012,11 +902,10 @@
                 selectedPelangganObj = null;
                 document.getElementById('search-pelanggan').value = '';
                 document.getElementById('selected-pelanggan-info').classList.add('hidden');
-                document.getElementById('input-qty').value = '';
                 renderCart();
                 renderRiwayatList();
             } catch (err) {
-                alert('Gagal menyimpan transaksi ke Firebase: ' + err.message);
+                alert('Gagal transaksi: ' + err.message);
             }
         }
 
@@ -1040,116 +929,64 @@
             `).join('');
 
             document.getElementById('print-total').innerText = 'Rp ' + trx.total.toLocaleString();
-
             window.print();
         }
 
         function cetakUlangStruk(trxId) {
-            const trx = riwayatCache[trxId];
-            if (trx) {
-                cetakStruk(trx);
-            } else {
-                alert('Data transaksi tidak ditemukan untuk dicetak.');
-            }
-        }
-
-        async function hapusRiwayat(firebaseKey) {
-            if (!confirm('Konfirmasi: Yakin ingin menghapus riwayat pesanan ini?')) return;
-
-            try {
-                await rtdb.remove(rtdb.ref(db, 'riwayat/' + firebaseKey));
-                renderRiwayatList();
-            } catch (err) {
-                alert('Gagal menghapus riwayat: ' + err.message);
-            }
+            if (riwayatCache[trxId]) cetakStruk(riwayatCache[trxId]);
+            else alert('Transaksi tidak ditemukan.');
         }
 
         async function renderRiwayatList() {
             const container = document.getElementById('list-riwayat');
-            container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Memuat riwayat...</p>`;
-
+            container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Memuat...</p>`;
             try {
                 const snap = await rtdb.get(rtdb.ref(db, 'riwayat'));
-                
                 if (!snap.exists()) {
                     allRiwayatData = [];
-                    container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Belum ada riwayat pesanan</p>`;
+                    container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Belum ada riwayat</p>`;
                     return;
                 }
-
                 allRiwayatData = [];
-                riwayatCache = {}; 
-
+                riwayatCache = {};
                 snap.forEach(childSnap => {
                     const val = childSnap.val();
-                    const key = childSnap.key;
-                    val._fbKey = key; 
+                    val._fbKey = childSnap.key;
                     allRiwayatData.push(val);
-                    if (val.id) {
-                        riwayatCache[val.id] = val;
-                    }
+                    if (val.id) riwayatCache[val.id] = val;
                 });
-
                 allRiwayatData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                 filterRiwayat();
             } catch (err) {
-                console.error("Gagal ambil riwayat:", err);
-                container.innerHTML = `<p class="text-red-400 text-center py-4 text-xs">Gagal memuat riwayat: ${err.message}</p>`;
+                container.innerHTML = `<p class="text-red-400 text-center py-4 text-xs">Gagal memuat</p>`;
             }
         }
 
         function filterRiwayat() {
             const keyword = document.getElementById('search-riwayat').value.toLowerCase().trim();
             const container = document.getElementById('list-riwayat');
-
             let filtered = allRiwayatData;
             if (keyword) {
-                filtered = allRiwayatData.filter(r => {
-                    const idTrx = (r.id || '').toLowerCase();
-                    const kasir = (r.kasir || '').toLowerCase();
-                    const namaPelanggan = (r.pelanggan && r.pelanggan.nama ? r.pelanggan.nama : '').toLowerCase();
-                    const telpPelanggan = (r.pelanggan && r.pelanggan.telp ? r.pelanggan.telp : '').toLowerCase();
-                    
-                    return idTrx.includes(keyword) || 
-                           kasir.includes(keyword) || 
-                           namaPelanggan.includes(keyword) || 
-                           telpPelanggan.includes(keyword);
-                });
+                filtered = allRiwayatData.filter(r => (r.id || '').toLowerCase().includes(keyword) || (r.pelanggan?.nama || '').toLowerCase().includes(keyword));
             }
-
             if (filtered.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Tidak ada riwayat yang cocok dengan pencarian</p>`;
+                container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Tidak ada riwayat</p>`;
                 return;
             }
-
-            let html = '';
-            filtered.forEach(r => {
-                const itemsHtml = r.items ? r.items.map(i => `<div>• ${i.namaLayanan} (${i.qty} ${i.satuan})</div>`).join('') : '';
-                html += `
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-xs space-y-2">
-                        <div class="flex justify-between items-center font-bold text-slate-900">
-                            <span>${r.id || 'TRX'}</span>
-                            <span class="text-blue-600">Rp ${(r.total || 0).toLocaleString()}</span>
-                        </div>
-                        <div class="text-slate-500">${r.tanggal || '-'} | Kasir: <span class="font-medium text-slate-700">${r.kasir || '-'}</span></div>
-                        <div class="text-slate-600 font-medium">Pelanggan: ${r.pelanggan ? r.pelanggan.nama : '-'}</div>
-                        <div class="border-t border-slate-200 pt-1 text-[11px] text-slate-600">
-                            ${itemsHtml}
-                        </div>
-                        <div class="border-t border-slate-200 pt-2 flex justify-end space-x-2">
-                            <button onclick="hapusRiwayat('${r._fbKey}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-md font-semibold text-[11px] hover:bg-red-100 transition flex items-center space-x-1">
-                                <i class="fa-solid fa-trash"></i>
-                               <span>Hapus</span>
-                            </button>
-                            <button onclick="cetakUlangStruk('${r.id}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-md font-semibold text-[11px] shadow-sm hover:bg-blue-700 transition flex items-center space-x-1">
-                                <i class="fa-solid fa-print"></i>
-                                <span>Cetak Struk</span>
-                            </button>
-                        </div>
+            container.innerHTML = filtered.map(r => `
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-xs space-y-2">
+                    <div class="flex justify-between items-center font-bold text-slate-900">
+                        <span>${r.id}</span>
+                        <span class="text-blue-600">Rp ${(r.total || 0).toLocaleString()}</span>
                     </div>
-                `;
-            });
-            container.innerHTML = html;
+                    <div class="text-slate-500">${r.tanggal} | Kasir: ${r.kasir}</div>
+                    <div class="text-slate-600 font-medium">Pelanggan: ${r.pelanggan?.nama || '-'}</div>
+                    <div class="border-t border-slate-200 pt-2 flex justify-end space-x-2">
+                        <button onclick="rtdb.remove(rtdb.ref(db, 'riwayat/${r._fbKey}')).then(renderRiwayatList)" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-md font-semibold text-[11px]"><i class="fa-solid fa-trash"></i> Hapus</button>
+                        <button onclick="cetakUlangStruk('${r.id}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-md font-semibold text-[11px]"><i class="fa-solid fa-print"></i> Cetak</button>
+                    </div>
+                </div>
+            `).join('');
         }
     </script>
 </body>
