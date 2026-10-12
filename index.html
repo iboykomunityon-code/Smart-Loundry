@@ -102,7 +102,10 @@
         <!-- Header -->
         <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 py-3 flex justify-between items-center shadow-sm">
             <div class="flex items-center space-x-2">
-                <div class="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm">SL</div>
+                <!-- LOGO DI ATAS KIRI DIUBAH MENJADI GAMBAR -->
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 border border-slate-100 overflow-hidden">
+                    <img id="header-logo-img" alt="Logo" class="w-full h-full object-contain" onerror="this.style.display='none'">
+                </div>
                 <div>
                     <h2 class="font-bold text-sm leading-tight text-slate-900">Smart Laundry</h2>
                     <p id="active-user-display" class="text-[10px] text-blue-600 font-medium">Kasir: -</p>
@@ -249,8 +252,8 @@
             <!-- TAB 5: PENGATURAN -->
             <div id="tab-pengaturan" class="space-y-4 tab-content hidden">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-3">
-                    <h3 class="font-bold text-sm text-slate-900">Pengaturan Logo Struk</h3>
-                    <p class="text-xs text-slate-500">Unggah logo toko Anda (otomatis tampil di struk cetak).</p>
+                    <h3 class="font-bold text-sm text-slate-900">Pengaturan Logo Struk & Header</h3>
+                    <p class="text-xs text-slate-500">Unggah logo toko Anda (otomatis tampil di pojok kiri atas dan struk cetak).</p>
                     <div class="flex items-center space-x-3">
                         <div class="w-12 h-12 border border-slate-200 rounded-lg flex items-center justify-center bg-slate-50 overflow-hidden">
                             <img id="preview-logo-setting" alt="Logo" class="w-full h-full object-contain">
@@ -296,7 +299,6 @@
         <!-- Struk Print Area (Thermal 58mm) -->
         <div id="print-area">
             <div style="text-align: center; margin-bottom: 6px;">
-                <!-- LOGO OTOMATIS MUNCUL DI NOTA -->
                 <img id="print-logo-img" alt="Logo" style="width: 38px; height: 38px; margin: 0 auto 3px auto; object-fit: contain; display: block; filter: grayscale(100%);">
                 <div style="font-weight: bold; font-size: 13px; letter-spacing: 0.5px;">SMART LAUNDRY</div>
                 <div style="font-size: 9px; line-height: 1.2;">Jl. Kp. Cijujung No.34, Sukaraja, Bogor</div>
@@ -412,10 +414,16 @@
         function applyLogoToUI(base64Str) {
             const previewSetting = document.getElementById('preview-logo-setting');
             const printLogo = document.getElementById('print-logo-img');
+            const headerLogo = document.getElementById('header-logo-img');
+
             if (previewSetting) previewSetting.src = base64Str;
             if (printLogo) {
                 printLogo.src = base64Str;
                 printLogo.style.display = 'block';
+            }
+            if (headerLogo) {
+                headerLogo.src = base64Str;
+                headerLogo.style.display = 'block';
             }
         }
 
@@ -937,6 +945,16 @@
             else alert('Transaksi tidak ditemukan.');
         }
 
+        async function hapusRiwayat(firebaseKey) {
+            if (!confirm('Yakin ingin menghapus riwayat pesanan ini?')) return;
+            try {
+                await rtdb.remove(rtdb.ref(db, 'riwayat/' + firebaseKey));
+                renderRiwayatList();
+            } catch (err) {
+                alert('Gagal menghapus riwayat: ' + err.message);
+            }
+        }
+
         async function renderRiwayatList() {
             const container = document.getElementById('list-riwayat');
             container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Memuat...</p>`;
@@ -982,7 +1000,7 @@
                     <div class="text-slate-500">${r.tanggal} | Kasir: ${r.kasir}</div>
                     <div class="text-slate-600 font-medium">Pelanggan: ${r.pelanggan?.nama || '-'}</div>
                     <div class="border-t border-slate-200 pt-2 flex justify-end space-x-2">
-                        <button onclick="rtdb.remove(rtdb.ref(db, 'riwayat/${r._fbKey}')).then(renderRiwayatList)" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-md font-semibold text-[11px]"><i class="fa-solid fa-trash"></i> Hapus</button>
+                        <button onclick="hapusRiwayat('${r._fbKey}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-md font-semibold text-[11px]"><i class="fa-solid fa-trash"></i> Hapus</button>
                         <button onclick="cetakUlangStruk('${r.id}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-md font-semibold text-[11px]"><i class="fa-solid fa-print"></i> Cetak</button>
                     </div>
                 </div>
