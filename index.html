@@ -186,13 +186,23 @@
                         <h3 class="font-bold text-sm text-slate-900">Daftar Pelanggan</h3>
                         <button onclick="renderPelangganList()" class="text-xs text-blue-600 font-medium hover:underline"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
                     </div>
-                    <!-- Input Pencarian Pelanggan -->
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </span>
-                        <input type="text" id="search-pelanggan-list" oninput="filterPelangganList()" placeholder="Cari nama atau no. telepon pelanggan..." class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    
+                    <!-- Fitur Pencarian & Sort Pelanggan -->
+                    <div class="flex space-x-2">
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" id="search-pelanggan-list" oninput="filterPelangganList()" placeholder="Cari nama/telp..." class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <select id="sort-pelanggan" onchange="filterPelangganList()" class="px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="terbaru">Terbaru</option>
+                            <option value="terlama">Terlama</option>
+                            <option value="az">Nama (A - Z)</option>
+                            <option value="za">Nama (Z - A)</option>
+                        </select>
                     </div>
+
                     <div id="list-pelanggan-data" class="space-y-2 text-sm max-h-60 overflow-y-auto"></div>
                 </div>
             </div>
@@ -224,7 +234,10 @@
                     </form>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-sm text-slate-900 mb-3">Daftar Layanan</h3>
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-sm text-slate-900">Daftar Layanan</h3>
+                        <span class="text-[10px] text-slate-400 font-medium">Gunakan tombol panah untuk atur urutan</span>
+                    </div>
                     <div id="list-layanan-data" class="space-y-2 text-sm max-h-60 overflow-y-auto"></div>
                 </div>
             </div>
@@ -343,7 +356,8 @@
         let db, rtdb;
         let riwayatCache = {}; // Cache objek transaksi untuk cetak ulang
         let allRiwayatData = []; // Cache list riwayat untuk pencarian
-        let allPelangganData = []; // Cache list pelanggan untuk pencarian
+        let allPelangganData = []; // Cache list pelanggan untuk pencarian & sort
+        let allLayananData = []; // Cache list layanan untuk urutan
 
         window.addEventListener('firebase-ready', async () => {
             db = window.db;
@@ -370,14 +384,14 @@
                 const pelSnap = await rtdb.get(rtdb.ref(db, 'pelanggan'));
                 if (!pelSnap.exists()) {
                     const newRef = rtdb.push(rtdb.ref(db, 'pelanggan'));
-                    await rtdb.set(newRef, { nama: 'Budi Santoso', telp: '081234567890', alamat: 'Cijujung Sukaraja' });
+                    await rtdb.set(newRef, { nama: 'Budi Santoso', telp: '081234567890', alamat: 'Cijujung Sukaraja', timestamp: Date.now() });
                 }
                 const laySnap = await rtdb.get(rtdb.ref(db, 'layanan'));
                 if (!laySnap.exists()) {
                     let ref1 = rtdb.push(rtdb.ref(db, 'layanan'));
-                    await rtdb.set(ref1, { nama: 'Cuci Kering Setrika', harga: 7000, satuan: 'Kg' });
+                    await rtdb.set(ref1, { nama: 'Cuci Kering Setrika', harga: 7000, satuan: 'Kg', order: 1 });
                     let ref2 = rtdb.push(rtdb.ref(db, 'layanan'));
-                    await rtdb.set(ref2, { nama: 'Cuci Jas', harga: 25000, satuan: 'Pcs' });
+                    await rtdb.set(ref2, { nama: 'Cuci Jas', harga: 25000, satuan: 'Pcs', order: 2 });
                 }
             } catch (e) {
                 console.error("Gagal seed data:", e);
@@ -440,6 +454,8 @@
                 renderRiwayatList();
             } else if (tabId === 'pelanggan') {
                 renderPelangganList();
+            } else if (tabId === 'layanan') {
+                renderLayananList();
             }
         }
 
@@ -583,11 +599,14 @@
             const newPel = {
                 nama: document.getElementById('pel-nama').value,
                 telp: document.getElementById('pel-telp').value,
-                alamat: document.getElementById('pel-alamat').value
+                alamat: document.getElementById('pel-alamat').value,
+                timestamp: id ? undefined : Date.now() // Pertahankan timestamp jika edit, set baru jika tambah
             };
 
             try {
                 if (id) {
+                    // Jangan Timpa timestamp lama jika ada
+                    delete newPel.timestamp;
                     await rtdb.update(rtdb.ref(db, 'pelanggan/' + id), newPel);
                     alert('Data pelanggan berhasil diperbarui!');
                 } else {
@@ -647,6 +666,7 @@
 
         function filterPelangganList() {
             const keyword = document.getElementById('search-pelanggan-list').value.toLowerCase().trim();
+            const sortOption = document.getElementById('sort-pelanggan').value;
             const container = document.getElementById('list-pelanggan-data');
 
             let filtered = allPelangganData;
@@ -658,6 +678,20 @@
                     return nama.includes(keyword) || telp.includes(keyword) || alamat.includes(keyword);
                 });
             }
+
+            // Proses Sorting
+            filtered.sort((a, b) => {
+                if (sortOption === 'terbaru') {
+                    return (b.timestamp || 0) - (a.timestamp || 0);
+                } else if (sortOption === 'terlama') {
+                    return (a.timestamp || 0) - (b.timestamp || 0);
+                } else if (sortOption === 'az') {
+                    return (a.nama || '').localeCompare(b.nama || '');
+                } else if (sortOption === 'za') {
+                    return (b.nama || '').localeCompare(a.nama || '');
+                }
+                return 0;
+            });
 
             if (filtered.length === 0) {
                 container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Tidak ada pelanggan yang cocok</p>`;
@@ -692,14 +726,21 @@
         async function renderLayananSelect() {
             const snap = await rtdb.get(rtdb.ref(db, 'layanan'));
             const select = document.getElementById('select-layanan');
-            let html = '';
+            let items = [];
             if (snap.exists()) {
                 snap.forEach(childSnap => {
-                    const l = childSnap.val();
-                    const id = childSnap.key;
-                    html += `<option value="${id}" data-harga="${l.harga}" data-satuan="${l.satuan || 'Kg'}">${l.nama} (Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'})</option>`;
+                    let l = childSnap.val();
+                    l._id = childSnap.key;
+                    items.push(l);
                 });
+                // Urutkan berdasarkan properti 'order' jika ada
+                items.sort((a, b) => (a.order || 0) - (b.order || 0));
             }
+
+            let html = items.map(l => `
+                <option value="${l._id}" data-harga="${l.harga}" data-satuan="${l.satuan || 'Kg'}">${l.nama} (Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'})</option>
+            `).join('');
+
             select.innerHTML = html;
             updateSatuanLabel();
         }
@@ -725,8 +766,17 @@
             if (id) {
                 await rtdb.update(rtdb.ref(db, 'layanan/' + id), { nama, harga, satuan });
             } else {
+                // Tentukan order berikutnya agar ada di posisi paling bawah
+                const snap = await rtdb.get(rtdb.ref(db, 'layanan'));
+                let maxOrder = 0;
+                if (snap.exists()) {
+                    snap.forEach(child => {
+                        let val = child.val();
+                        if (val.order && val.order > maxOrder) maxOrder = val.order;
+                    });
+                }
                 const newRef = rtdb.push(rtdb.ref(db, 'layanan'));
-                await rtdb.set(newRef, { nama, harga, satuan });
+                await rtdb.set(newRef, { nama, harga, satuan, order: maxOrder + 1 });
             }
 
             resetFormLayanan();
@@ -755,26 +805,69 @@
         async function renderLayananList() {
             const snap = await rtdb.get(rtdb.ref(db, 'layanan'));
             const container = document.getElementById('list-layanan-data');
-            let html = '';
+            allLayananData = [];
             if (snap.exists()) {
                 snap.forEach(childSnap => {
                     const l = childSnap.val();
-                    const id = childSnap.key;
-                    html += `
-                        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center">
-                            <div>
-                                <div class="font-bold">${l.nama}</div>
-                                <div class="text-xs text-blue-600 font-medium">Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'}</div>
-                            </div>
-                            <div class="flex space-x-1">
-                                <button onclick="editLayanan('${id}', '${l.nama}', ${l.harga}, '${l.satuan || 'Kg'}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="hapusLayanan('${id}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-                    `;
+                    l._id = childSnap.key;
+                    allLayananData.push(l);
                 });
+                // Urutkan berdasarkan order
+                allLayananData.sort((a, b) => (a.order || 0) - (b.order || 0));
             }
+
+            if (allLayananData.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Belum ada data layanan</p>`;
+                return;
+            }
+
+            let html = '';
+            allLayananData.forEach((l, index) => {
+                html += `
+                    <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center">
+                        <div>
+                            <div class="font-bold">${l.nama}</div>
+                            <div class="text-xs text-blue-600 font-medium">Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'}</div>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <!-- Tombol Atur Posisi (Naik / Turun) -->
+                            <div class="flex flex-col mr-1">
+                                <button onclick="geserLayanan(${index}, -1)" ${index === 0 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-up"></i></button>
+                                <button onclick="geserLayanan(${index}, 1)" ${index === allLayananData.length - 1 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-down"></i></button>
+                            </div>
+                            <button onclick="editLayanan('${l._id}', '${l.nama}', ${l.harga}, '${l.satuan || 'Kg'}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="hapusLayanan('${l._id}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
             container.innerHTML = html;
+        }
+
+        // Fungsi menggeser urutan layanan (atas/bawah)
+        async function geserLayanan(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= allLayananData.length) return;
+
+            // Tukar posisi elemen di dalam array lokal
+            let temp = allLayananData[index];
+            allLayananData[index] = allLayananData[targetIndex];
+            allLayananData[targetIndex] = temp;
+
+            // Perbarui nilai urutan (order) berdasarkan indeks baru dan simpan ke Firebase
+            try {
+                const updates = {};
+                allLayananData.forEach((item, idx) => {
+                    updates[item._id + '/order'] = idx + 1;
+                });
+                await rtdb.update(rtdb.ref(db, 'layanan'), updates);
+                
+                // Refresh tampilan list dan dropdown kasir
+                renderLayananList();
+                renderLayananSelect();
+            } catch (err) {
+                alert('Gagal mengubah urutan layanan: ' + err.message);
+            }
         }
 
         async function hapusLayanan(id) {
