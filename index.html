@@ -169,8 +169,8 @@
                     <form onsubmit="simpanPelanggan(event)" class="space-y-3">
                         <input type="hidden" id="pel-id">
                         <input type="text" id="pel-nama" placeholder="Nama Lengkap" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-                        <input type="tel" id="pel-telp" placeholder="Nomor Telepon / WhatsApp" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-                        <textarea id="pel-alamat" placeholder="Alamat Pelanggan" rows="2" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"></textarea>
+                        <input type="tel" id="pel-telp" placeholder="Nomor Telepon / WhatsApp" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                        <textarea id="pel-alamat" placeholder="Alamat Pelanggan" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"></textarea>
                         <div class="flex space-x-2">
                             <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold">Simpan Pelanggan</button>
                             <button type="button" onclick="resetFormPelanggan()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold">Batal</button>
@@ -676,10 +676,12 @@
             e.preventDefault();
             if(!confirm('Simpan data pelanggan?')) return;
             const id = document.getElementById('pel-id').value;
+            const inputTelp = document.getElementById('pel-telp').value.trim();
+            const inputAlamat = document.getElementById('pel-alamat').value.trim();
             const newPel = {
                 nama: document.getElementById('pel-nama').value,
-                telp: document.getElementById('pel-telp').value,
-                alamat: document.getElementById('pel-alamat').value,
+                telp: inputTelp === '' ? '-' : inputTelp,
+                alamat: inputAlamat === '' ? '-' : inputAlamat,
                 timestamp: id ? undefined : Date.now()
             };
             try {
@@ -701,8 +703,8 @@
         function editPelanggan(id, nama, telp, alamat) {
             document.getElementById('pel-id').value = id;
             document.getElementById('pel-nama').value = nama;
-            document.getElementById('pel-telp').value = telp;
-            document.getElementById('pel-alamat').value = alamat;
+            document.getElementById('pel-telp').value = telp === '-' ? '' : telp;
+            document.getElementById('pel-alamat').value = alamat === '-' ? '' : alamat;
             document.getElementById('pelanggan-form-title').innerText = 'Edit Pelanggan';
         }
 
