@@ -144,7 +144,7 @@
                     </div>
                     <div>
                         <label id="label-qty-input" class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Jumlah / Kuantitas (Kg)</label>
-                        <input type="number" id="input-qty" step="0.1" min="0.1" placeholder="Masukkan jumlah..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" id="input-qty" value="1" onfocus="this.select()" step="0.1" min="0.1" placeholder="Masukkan jumlah..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <button onclick="tambahKeKeranjang()" class="w-full bg-slate-900 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition">Tambah ke Keranjang</button>
                 </div>
@@ -921,7 +921,7 @@
                 satuan: opt.dataset.satuan,
                 subtotal: parseInt(opt.dataset.harga) * qty
             });
-            document.getElementById('input-qty').value = '';
+            document.getElementById('input-qty').value = '1';
             renderCart();
         }
 
@@ -976,6 +976,7 @@
                 selectedPelangganObj = null;
                 document.getElementById('search-pelanggan').value = '';
                 document.getElementById('selected-pelanggan-info').classList.add('hidden');
+                document.getElementById('input-qty').value = '1';
                 renderCart();
                 renderRiwayatList();
             } catch (err) {
