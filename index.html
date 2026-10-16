@@ -227,7 +227,7 @@
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <div class="flex justify-between items-center mb-3">
                         <h3 class="font-bold text-sm text-slate-900">Daftar Layanan</h3>
-                        <span class="text-[10px] text-slate-400 font-medium">Atur urutan dengan panah</span>
+                        <span class="text-[10px] text-slate-400 font-medium">Tahan ikon titik di kiri & geser untuk atur urutan</span>
                     </div>
                     <div id="list-layanan-data" class="space-y-2 text-sm"></div>
                 </div>
@@ -863,39 +863,136 @@
                 container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Belum ada layanan</p>`;
                 return;
             }
-            container.innerHTML = allLayananData.map((l, index) => `
-                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center">
-                    <div>
-                        <div class="font-bold">${l.nama}</div>
-                        <div class="text-xs text-blue-600 font-medium">Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'}</div>
+            container.innerHTML = allLayananData.map((l) => `
+                <div data-id="${l._id}" class="layanan-item bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center select-none transition-transform">
+                    <div class="flex items-center space-x-2">
+                        <span class="drag-handle text-slate-400 hover:text-slate-600 cursor-grab active:cursor-grabbing p-1"><i class="fa-solid fa-grip-vertical"></i></span>
+                        <div>
+                            <div class="font-bold">${l.nama}</div>
+                            <div class="text-xs text-blue-600 font-medium">Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'}</div>
+                        </div>
                     </div>
                     <div class="flex items-center space-x-1">
-                        <div class="flex flex-col mr-1">
-                            <button onclick="geserLayanan(${index}, -1)" ${index === 0 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-up"></i></button>
-                            <button onclick="geserLayanan(${index}, 1)" ${index === allLayananData.length - 1 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-down"></i></button>
-                        </div>
                         <button onclick="editLayanan('${l._id}', '${l.nama}', ${l.harga}, '${l.satuan || 'Kg'}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
                         <button onclick="hapusLayanan('${l._id}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
             `).join('');
+
+            initDragAndDropLayanan(container);
         }
 
-        async function geserLayanan(index, direction) {
-            const targetIndex = index + direction;
-            if (targetIndex < 0 || targetIndex >= allLayananData.length) return;
-            let temp = allLayananData[index];
-            allLayananData[index] = allLayananData[targetIndex];
-            allLayananData[targetIndex] = temp;
-            try {
-                const updates = {};
-                allLayananData.forEach((item, idx) => { updates[item._id + '/order'] = idx + 1; });
-                await rtdb.update(rtdb.ref(db, 'layanan'), updates);
-                renderLayananList();
-                renderLayananSelect();
-            } catch (err) {
-                alert('Gagal mengubah urutan: ' + err.message);
-            }
+        function initDragAndDropLayanan(container) {
+            let draggedItem = null;
+
+            container.querySelectorAll('.layanan-item').forEach(item => {
+                const handle = item.querySelector('.drag-handle');
+
+                handle.addEventListener('mousedown', function() {
+                    item.setAttribute('draggable', 'true');
+                });
+
+                item.addEventListener('dragstart', function(e) {
+                    draggedItem = this;
+                    setTimeout(() => this.classList.add('opacity-40', 'bg-blue-50'), 0);
+                });
+
+                item.addEventListener('dragend', async function(e) {
+                    this.setAttribute('draggable', 'false');
+                    this.classList.remove('opacity-40', 'bg-blue-50');
+                    draggedItem = null;
+
+                    const items = container.querySelectorAll('.layanan-item');
+                    const updates = {};
+                    const reorderedList = [];
+                    items.forEach((el, idx) => {
+                        const id = el.dataset.id;
+                        updates[id + '/order'] = idx + 1;
+                        const originalObj = allLayananData.find(x => x._id === id);
+                        if (originalObj) {
+                            originalObj.order = idx + 1;
+                            reorderedList.push(originalObj);
+                        }
+                    });
+                    if (reorderedList.length > 0) allLayananData = reorderedList;
+
+                    try {
+                        await rtdb.update(rtdb.ref(db, 'layanan'), updates);
+                        renderLayananSelect();
+                    } catch (err) {
+                        alert('Gagal menyimpan urutan: ' + err.message);
+                    }
+                });
+
+                item.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    if (!draggedItem) return;
+                    const afterElement = getDragAfterElement(container, e.clientY);
+                    if (afterElement == null) {
+                        container.appendChild(draggedItem);
+                    } else {
+                        container.insertBefore(draggedItem, afterElement);
+                    }
+                });
+
+                // Touch Support khusus via Handle untuk HP / Mobile
+                handle.addEventListener('touchstart', function(e) {
+                    draggedItem = item;
+                    setTimeout(() => item.classList.add('opacity-40', 'bg-blue-50'), 0);
+                }, {passive: true});
+
+                item.addEventListener('touchend', async function(e) {
+                    if (!draggedItem) return;
+                    this.classList.remove('opacity-40', 'bg-blue-50');
+                    draggedItem = null;
+
+                    const items = container.querySelectorAll('.layanan-item');
+                    const updates = {};
+                    const reorderedList = [];
+                    items.forEach((el, idx) => {
+                        const id = el.dataset.id;
+                        updates[id + '/order'] = idx + 1;
+                        const originalObj = allLayananData.find(x => x._id === id);
+                        if (originalObj) {
+                            originalObj.order = idx + 1;
+                            reorderedList.push(originalObj);
+                        }
+                    });
+                    if (reorderedList.length > 0) allLayananData = reorderedList;
+
+                    try {
+                        await rtdb.update(rtdb.ref(db, 'layanan'), updates);
+                        renderLayananSelect();
+                    } catch (err) {
+                        alert('Gagal menyimpan urutan: ' + err.message);
+                    }
+                }, {passive: true});
+
+                item.addEventListener('touchmove', function(e) {
+                    if (!draggedItem) return;
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const afterElement = getDragAfterElement(container, touch.clientY);
+                    if (afterElement == null) {
+                        container.appendChild(draggedItem);
+                    } else {
+                        container.insertBefore(draggedItem, afterElement);
+                    }
+                }, {passive: false});
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.layanan-item:not(.opacity-40)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
         }
 
         async function hapusLayanan(id) {
