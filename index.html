@@ -4,17 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Laundry - Kasir (Firebase RTDB)</title>
-    <!-- Tailwind CSS untuk Desain Modern & Ringan -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- FIREBASE SDK (Realtime Database & Analytics) -->
+    <!-- FIREBASE SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
         import { getDatabase, ref, get, set, push, update, remove, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Konfigurasi Firebase Anda
         const firebaseConfig = {
             apiKey: "AIzaSyDWOgrk8JCx4PIlRBG46Cfp-xnz7ESpGE0",
             authDomain: "smart-loundry-c3ea9.firebaseapp.com",
@@ -26,36 +25,75 @@
             measurementId: "G-JYFV4P5WL1"
         };
 
-        // Inisialisasi Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const db = getDatabase(app);
 
-        // Ekspor fungsi agar bisa diakses script utama
         window.db = db;
         window.fbRTDB = { ref, get, set, push, update, remove, child };
-        
-        // Trigger event siap setelah Firebase terhubung
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
-    <!-- STYLESHEET PRINT THERMAL 58mm (Dioptimalkan Hitam Putih & Diberi Spasi Bawah) -->
     <style>
-        #print-area {
-            display: none;
+        #print-area { display: none; }
+        .draggable-item { user-select: none; transition: background-color 0.15s ease, box-shadow 0.15s ease; }
+        .draggable-item.dragging {
+            opacity: 0.85;
+            background-color: #eff6ff !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 50;
         }
+        .drag-handle { touch-action: none; cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
+
+        /* Custom Styling Kalender Rentang Tanggal (Dark Theme) */
+        .cal-day-item {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 9999px;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            z-index: 10;
+        }
+        .cal-day-item.other-month { opacity: 0.3; }
+        .cal-day-item:not(.empty):hover { background-color: rgba(255, 255, 255, 0.1); }
+        
+        .cal-day-item.range-start {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+        .cal-day-item.range-end {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
+        }
+        .cal-day-item.range-single {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            border-radius: 9999px !important;
+        }
+        .cal-day-item.in-range {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            border-radius: 0 !important;
+        }
+
         @media print {
-            body * {
-                visibility: hidden !important;
-            }
-            #print-area, #print-area * {
-                visibility: visible !important;
-            }
+            body * { visibility: hidden !important; }
+            #print-area, #print-area * { visibility: visible !important; }
             #print-area {
                 display: block !important;
                 position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
+                left: 0 !important; top: 0 !important;
                 width: 58mm !important;
                 margin: 0 !important;
                 padding: 3mm 2mm 12mm 2mm !important;
@@ -64,8 +102,6 @@
                 line-height: 1.25 !important;
                 color: black !important;
                 background: white !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
             }
         }
     </style>
@@ -124,7 +160,7 @@
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 relative">
                     <div class="flex justify-between items-center mb-1">
                         <label class="block text-xs font-bold text-slate-500 uppercase">1. Cari Pelanggan</label>
-                        <button onclick="switchTab('pelanggan')" class="text-xs text-blue-600 font-semibold hover:underline flex items-center space-x-1">
+                        <button onclick="bukaModalQuickPelanggan()" class="text-xs text-blue-600 font-semibold hover:underline flex items-center space-x-1">
                             <i class="fa-solid fa-user-plus"></i>
                             <span>Tambah Pelanggan</span>
                         </button>
@@ -164,23 +200,13 @@
 
             <!-- TAB 2: PELANGGAN -->
             <div id="tab-pelanggan" class="space-y-4 tab-content hidden">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <h3 id="pelanggan-form-title" class="font-bold text-sm text-slate-900 mb-3">Tambah Pelanggan Baru</h3>
-                    <form onsubmit="simpanPelanggan(event)" class="space-y-3">
-                        <input type="hidden" id="pel-id">
-                        <input type="text" id="pel-nama" placeholder="Nama Lengkap" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-                        <input type="tel" id="pel-telp" placeholder="Nomor Telepon / WhatsApp" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-                        <textarea id="pel-alamat" placeholder="Alamat Pelanggan" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"></textarea>
-                        <div class="flex space-x-2">
-                            <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold">Simpan Pelanggan</button>
-                            <button type="button" onclick="resetFormPelanggan()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold">Batal</button>
-                        </div>
-                    </form>
-                </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-3">
                     <div class="flex justify-between items-center">
                         <h3 class="font-bold text-sm text-slate-900">Daftar Pelanggan</h3>
-                        <button onclick="renderPelangganList()" class="text-xs text-blue-600 font-medium hover:underline"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                        <button onclick="bukaModalQuickPelanggan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 hover:bg-blue-700 transition">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Tambah Pelanggan</span>
+                        </button>
                     </div>
                     <div class="flex space-x-2">
                         <div class="relative flex-1">
@@ -200,34 +226,16 @@
 
             <!-- TAB 3: LAYANAN -->
             <div id="tab-layanan" class="space-y-4 tab-content hidden">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <h3 id="layanan-form-title" class="font-bold text-sm text-slate-900 mb-3">Tambah Layanan Baru</h3>
-                    <form onsubmit="simpanLayanan(event)" class="space-y-3">
-                        <input type="hidden" id="layanan-id">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-3">
+                    <div class="flex justify-between items-center">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Layanan</label>
-                            <input type="text" id="layanan-nama" placeholder="Cth: Cuci Kering" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                            <h3 class="font-bold text-sm text-slate-900">Daftar Layanan</h3>
+                            <span class="text-[10px] text-slate-400 font-medium">Tahan ikon garis untuk geser urutan</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Harga Dasar (Rp)</label>
-                                <input type="number" id="layanan-harga" placeholder="7000" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Satuan Layanan</label>
-                                <input type="text" id="layanan-satuan" placeholder="Kg / Pcs" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
-                            </div>
-                        </div>
-                        <div class="flex space-x-2 pt-1">
-                            <button type="submit" class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg text-sm font-semibold">Simpan Layanan</button>
-                            <button type="button" onclick="resetFormLayanan()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold">Batal</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-bold text-sm text-slate-900">Daftar Layanan</h3>
-                        <span class="text-[10px] text-slate-400 font-medium">Atur urutan dengan panah</span>
+                        <button onclick="bukaModalQuickLayanan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 hover:bg-blue-700 transition">
+                            <i class="fa-solid fa-tag"></i>
+                            <span>Tambah Layanan</span>
+                        </button>
                     </div>
                     <div id="list-layanan-data" class="space-y-2 text-sm"></div>
                 </div>
@@ -240,11 +248,21 @@
                         <h3 class="font-bold text-sm text-slate-900">Riwayat Pesanan</h3>
                         <button onclick="renderRiwayatList()" class="text-xs text-blue-600 font-medium hover:underline"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
                     </div>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
-                        <input type="text" id="search-riwayat" oninput="filterRiwayat()" placeholder="Cari nama pelanggan, no. TRX..." class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    
+                    <!-- PENCARIAN & TRIGGER KALENDER -->
+                    <div class="flex space-x-2">
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="search-riwayat" oninput="filterRiwayat()" placeholder="Cari nama pelanggan, no. TRX..." class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <button onclick="bukaModalRangePicker()" class="px-3 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition">
+                            <i class="fa-regular fa-calendar-days text-blue-600"></i>
+                            <span id="label-filter-rentang">Semua Tanggal</span>
+                        </button>
+                        <button onclick="resetFilterRentang()" id="btn-reset-rentang" class="hidden px-2.5 py-2 bg-red-50 text-red-600 rounded-lg text-xs hover:bg-red-100 transition" title="Reset Rentang Tanggal"><i class="fa-solid fa-xmark"></i></button>
                     </div>
-                    <div id="list-riwayat" class="space-y-3 text-sm"></div>
+
+                    <div id="list-riwayat" class="space-y-2 text-sm"></div>
                 </div>
             </div>
 
@@ -300,6 +318,99 @@
             <button onclick="switchTab('riwayat')" class="nav-btn flex flex-col items-center text-slate-400 text-xs font-medium" data-target="riwayat"><i class="fa-solid fa-clock-rotate-left text-base"></i> Riwayat</button>
         </nav>
 
+        <!-- MODAL RANGE PICKER KALENDER -->
+        <div id="modal-range-picker" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-[#242b3d] text-white w-full max-w-sm p-5 rounded-2xl shadow-2xl space-y-4">
+                <div class="flex justify-between items-center px-1">
+                    <button onclick="prevCalMonth()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-slate-300"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <div id="cal-month-year-label" class="font-bold text-sm tracking-wide">Desember 2026</div>
+                    <button onclick="nextCalMonth()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-slate-300"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+                <div class="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400 uppercase">
+                    <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+                </div>
+                <div id="cal-days-grid" class="grid grid-cols-7 gap-y-1 text-slate-200"></div>
+                <div class="border-t border-slate-700/60 pt-3 flex items-center justify-between">
+                    <div class="text-[11px] text-slate-400">
+                        <span id="cal-status-info">Pilih tanggal awal & akhir</span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="tutupModalRangePicker()" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10">Batal</button>
+                        <button onclick="terapkanRentangTanggal()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs font-semibold text-white transition shadow-md">Terapkan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL QUICK ADD / EDIT PELANGGAN -->
+        <div id="modal-quick-pelanggan" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-xl space-y-3">
+                <h3 id="pelanggan-modal-title" class="font-bold text-sm text-slate-900">Tambahkan Pelanggan</h3>
+                <form onsubmit="simpanQuickPelanggan(event)" class="space-y-3">
+                    <input type="hidden" id="quick-pel-id">
+                    <div>
+                        <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Nama Pelanggan</label>
+                        <input type="text" id="quick-pel-nama" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" placeholder="Nama Lengkap">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Nomor HP / WhatsApp</label>
+                        <input type="tel" id="quick-pel-telp" placeholder="Contoh: 081234567890" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Alamat Pelanggan</label>
+                        <textarea id="quick-pel-alamat" placeholder="Alamat..." rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"></textarea>
+                    </div>
+                    <div class="flex space-x-2 pt-2">
+                        <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold">Simpan Pelanggan</button>
+                        <button type="button" onclick="tutupModalQuickPelanggan()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL QUICK ADD / EDIT LAYANAN -->
+        <div id="modal-quick-layanan" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-xl space-y-3">
+                <h3 id="layanan-modal-title" class="font-bold text-sm text-slate-900">Tambahkan Layanan</h3>
+                <form onsubmit="simpanQuickLayanan(event)" class="space-y-3">
+                    <input type="hidden" id="quick-lay-id">
+                    <div>
+                        <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Nama Layanan</label>
+                        <input type="text" id="quick-lay-nama" placeholder="Cth: Cuci Kering" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Harga Dasar (Rp)</label>
+                            <input type="number" id="quick-lay-harga" placeholder="7000" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Satuan Layanan</label>
+                            <input type="text" id="quick-lay-satuan" placeholder="Kg / Pcs" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 pt-2">
+                        <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold">Simpan Layanan</button>
+                        <button type="button" onclick="tutupModalQuickLayanan()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL DETAIL RIWAYAT -->
+        <div id="modal-detail-riwayat" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-xl space-y-3 max-h-[85vh] overflow-y-auto">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <h3 class="font-bold text-sm text-slate-900">Detail Pesanan</h3>
+                    <button onclick="tutupModalDetailRiwayat()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+                </div>
+                <div id="content-detail-riwayat" class="space-y-3 text-xs"></div>
+                <div class="pt-2 flex space-x-2">
+                    <button id="modal-btn-hapus" type="button" class="flex-1 bg-red-50 text-red-600 py-2 rounded-lg font-semibold text-xs"><i class="fa-solid fa-trash"></i> Hapus</button>
+                    <button id="modal-btn-cetak" type="button" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold text-xs"><i class="fa-solid fa-print"></i> Cetak Struk</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Struk Print Area (Thermal 58mm) -->
         <div id="print-area">
             <div style="text-align: center; margin-bottom: 6px;">
@@ -351,6 +462,14 @@
         let allPelangganData = []; 
         let allLayananData = []; 
 
+        let currCalDate = new Date();
+        let selectedStartDate = null; 
+        let selectedEndDate = null;   
+        let activeFilterStart = null;
+        let activeFilterEnd = null;
+
+        const namaBulanIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
         window.addEventListener('firebase-ready', async () => {
             db = window.db;
             rtdb = window.fbRTDB;
@@ -366,7 +485,6 @@
             }
         });
 
-        // Toggle untuk melihat password
         function togglePasswordVisibility() {
             const passInput = document.getElementById('new-acc-pass');
             const eyeIcon = document.getElementById('eye-icon');
@@ -524,7 +642,6 @@
             const u = document.getElementById('new-acc-user').value;
             const p = document.getElementById('new-acc-pass').value;
 
-            // Validasi: Pastikan kasir hanya mengedit akunnya sendiri atau membuat akun baru
             if (id) {
                 const snap = await rtdb.get(rtdb.ref(db, 'accounts/' + id));
                 if (snap.exists()) {
@@ -608,8 +725,6 @@
 
         async function hapusAkun(id, targetUser) {
             const currentUser = localStorage.getItem('sl_current_user');
-            
-            // Validasi: Hanya bisa menghapus akun sendiri
             if (targetUser !== currentUser) {
                 alert('Anda tidak memiliki izin untuk menghapus akun kasir lain!');
                 return;
@@ -632,7 +747,7 @@
         }
 
         async function filterPelanggan() {
-            const queryText = document.getElementById('search-pelanggan').value.toLowerCase();
+            const queryText = document.getElementById('search-pelanggan').value.trim();
             const drop = document.getElementById('dropdown-pelanggan');
             if (!queryText) {
                 drop.classList.add('hidden');
@@ -644,7 +759,7 @@
                 snap.forEach(childSnap => {
                     let p = childSnap.val();
                     p.id = childSnap.key;
-                    if (p.nama.toLowerCase().includes(queryText) || p.telp.includes(queryText)) {
+                    if (p.nama.toLowerCase().includes(queryText.toLowerCase()) || p.telp.includes(queryText)) {
                         filtered.push(p);
                     }
                 });
@@ -658,8 +773,79 @@
                 `).join('');
                 drop.classList.remove('hidden');
             } else {
-                drop.innerHTML = `<div class="p-2 text-xs text-slate-400">Pelanggan tidak ditemukan</div>`;
+                const safeName = queryText.replace(/'/g, "\\'");
+                drop.innerHTML = `
+                    <div class="p-3 text-xs text-center space-y-2">
+                        <div class="text-slate-400">Pelanggan tidak ditemukan</div>
+                        <button onclick="bukaModalQuickPelanggan('${safeName}')" class="w-full bg-blue-600 text-white py-1.5 px-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-user-plus text-[10px]"></i>
+                            <span>Tambah Pelanggan "${queryText}"</span>
+                        </button>
+                    </div>
+                `;
                 drop.classList.remove('hidden');
+            }
+        }
+
+        function bukaModalQuickPelanggan(nama = '') {
+            document.getElementById('quick-pel-id').value = '';
+            document.getElementById('quick-pel-nama').value = nama;
+            document.getElementById('quick-pel-telp').value = '';
+            document.getElementById('quick-pel-alamat').value = '';
+            document.getElementById('pelanggan-modal-title').innerText = 'Tambahkan Pelanggan';
+            document.getElementById('dropdown-pelanggan').classList.add('hidden');
+            document.getElementById('modal-quick-pelanggan').classList.remove('hidden');
+        }
+
+        function editPelangganModal(id, nama, telp, alamat) {
+            document.getElementById('quick-pel-id').value = id;
+            document.getElementById('quick-pel-nama').value = nama;
+            document.getElementById('quick-pel-telp').value = telp === '-' ? '' : telp;
+            document.getElementById('quick-pel-alamat').value = alamat === '-' ? '' : alamat;
+            document.getElementById('pelanggan-modal-title').innerText = 'Tambahkan Pelanggan';
+            document.getElementById('modal-quick-pelanggan').classList.remove('hidden');
+        }
+
+        function tutupModalQuickPelanggan() {
+            document.getElementById('modal-quick-pelanggan').classList.add('hidden');
+        }
+
+        async function simpanQuickPelanggan(e) {
+            e.preventDefault();
+            const id = document.getElementById('quick-pel-id').value;
+            const inputNama = document.getElementById('quick-pel-nama').value.trim();
+            const inputTelp = document.getElementById('quick-pel-telp').value.trim();
+            const inputAlamat = document.getElementById('quick-pel-alamat').value.trim();
+
+            if (!inputNama) {
+                alert('Nama pelanggan wajib diisi!');
+                return;
+            }
+
+            const newPel = {
+                nama: inputNama,
+                telp: inputTelp === '' ? '-' : inputTelp,
+                alamat: inputAlamat === '' ? '-' : inputAlamat,
+                timestamp: id ? undefined : Date.now()
+            };
+
+            try {
+                if (id) {
+                    delete newPel.timestamp;
+                    await rtdb.update(rtdb.ref(db, 'pelanggan/' + id), newPel);
+                    newPel.id = id;
+                } else {
+                    const newRef = rtdb.push(rtdb.ref(db, 'pelanggan'));
+                    await rtdb.set(newRef, newPel);
+                    newPel.id = newRef.key;
+                }
+
+                tutupModalQuickPelanggan();
+                pilihPelanggan(newPel);
+                renderPelangganList();
+                alert('Pelanggan berhasil disimpan!');
+            } catch (err) {
+                alert('Gagal menyimpan pelanggan: ' + err.message);
             }
         }
 
@@ -670,50 +856,6 @@
             const info = document.getElementById('selected-pelanggan-info');
             info.innerText = `Terpilih: ${p.nama} (${p.telp})`;
             info.classList.remove('hidden');
-        }
-
-        async function simpanPelanggan(e) {
-            e.preventDefault();
-            if(!confirm('Simpan data pelanggan?')) return;
-            const id = document.getElementById('pel-id').value;
-            const inputTelp = document.getElementById('pel-telp').value.trim();
-            const inputAlamat = document.getElementById('pel-alamat').value.trim();
-            const newPel = {
-                nama: document.getElementById('pel-nama').value,
-                telp: inputTelp === '' ? '-' : inputTelp,
-                alamat: inputAlamat === '' ? '-' : inputAlamat,
-                timestamp: id ? undefined : Date.now()
-            };
-            try {
-                if (id) {
-                    delete newPel.timestamp;
-                    await rtdb.update(rtdb.ref(db, 'pelanggan/' + id), newPel);
-                } else {
-                    const newRef = rtdb.push(rtdb.ref(db, 'pelanggan'));
-                    await rtdb.set(newRef, newPel);
-                }
-                resetFormPelanggan();
-                renderPelangganList();
-                alert('Pelanggan berhasil disimpan!');
-            } catch (err) {
-                alert('Gagal: ' + err.message);
-            }
-        }
-
-        function editPelanggan(id, nama, telp, alamat) {
-            document.getElementById('pel-id').value = id;
-            document.getElementById('pel-nama').value = nama;
-            document.getElementById('pel-telp').value = telp === '-' ? '' : telp;
-            document.getElementById('pel-alamat').value = alamat === '-' ? '' : alamat;
-            document.getElementById('pelanggan-form-title').innerText = 'Edit Pelanggan';
-        }
-
-        function resetFormPelanggan() {
-            document.getElementById('pel-id').value = '';
-            document.getElementById('pel-nama').value = '';
-            document.getElementById('pel-telp').value = '';
-            document.getElementById('pel-alamat').value = '';
-            document.getElementById('pelanggan-form-title').innerText = 'Tambah Pelanggan Baru';
         }
 
         async function renderPelangganList() {
@@ -768,7 +910,7 @@
                         <div class="text-xs text-slate-500">${p.telp} | ${p.alamat}</div>
                     </div>
                     <div class="flex space-x-1">
-                        <button onclick="editPelanggan('${p._fbKey}', '${p.nama}', '${p.telp}', '${p.alamat}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="editPelangganModal('${p._fbKey}', '${p.nama}', '${p.telp}', '${p.alamat}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
                         <button onclick="hapusPelanggan('${p._fbKey}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
@@ -803,48 +945,62 @@
             if (opt) document.getElementById('label-qty-input').innerText = `Jumlah / Kuantitas (${opt.dataset.satuan})`;
         }
 
-        async function simpanLayanan(e) {
+        function bukaModalQuickLayanan() {
+            document.getElementById('quick-lay-id').value = '';
+            document.getElementById('quick-lay-nama').value = '';
+            document.getElementById('quick-lay-harga').value = '';
+            document.getElementById('quick-lay-satuan').value = '';
+            document.getElementById('layanan-modal-title').innerText = 'Tambahkan Layanan';
+            document.getElementById('modal-quick-layanan').classList.remove('hidden');
+        }
+
+        function editLayananModal(id, nama, harga, satuan) {
+            document.getElementById('quick-lay-id').value = id;
+            document.getElementById('quick-lay-nama').value = nama;
+            document.getElementById('quick-lay-harga').value = harga;
+            document.getElementById('quick-lay-satuan').value = satuan || 'Kg';
+            document.getElementById('layanan-modal-title').innerText = 'Tambahkan Layanan';
+            document.getElementById('modal-quick-layanan').classList.remove('hidden');
+        }
+
+        function tutupModalQuickLayanan() {
+            document.getElementById('modal-quick-layanan').classList.add('hidden');
+        }
+
+        async function simpanQuickLayanan(e) {
             e.preventDefault();
-            if(!confirm('Simpan layanan?')) return;
-            const id = document.getElementById('layanan-id').value;
-            const nama = document.getElementById('layanan-nama').value;
-            const harga = parseInt(document.getElementById('layanan-harga').value);
-            const satuan = document.getElementById('layanan-satuan').value.trim();
+            const id = document.getElementById('quick-lay-id').value;
+            const nama = document.getElementById('quick-lay-nama').value.trim();
+            const harga = parseInt(document.getElementById('quick-lay-harga').value);
+            const satuan = document.getElementById('quick-lay-satuan').value.trim();
 
-            if (id) {
-                await rtdb.update(rtdb.ref(db, 'layanan/' + id), { nama, harga, satuan });
-            } else {
-                const snap = await rtdb.get(rtdb.ref(db, 'layanan'));
-                let maxOrder = 0;
-                if (snap.exists()) {
-                    snap.forEach(child => {
-                        let val = child.val();
-                        if (val.order && val.order > maxOrder) maxOrder = val.order;
-                    });
-                }
-                const newRef = rtdb.push(rtdb.ref(db, 'layanan'));
-                await rtdb.set(newRef, { nama, harga, satuan, order: maxOrder + 1 });
+            if (!nama || isNaN(harga)) {
+                alert('Nama dan harga layanan wajib diisi dengan benar!');
+                return;
             }
-            resetFormLayanan();
-            renderLayananList();
-            renderLayananSelect();
-            alert('Layanan disimpan!');
-        }
 
-        function editLayanan(id, nama, harga, satuan) {
-            document.getElementById('layanan-id').value = id;
-            document.getElementById('layanan-nama').value = nama;
-            document.getElementById('layanan-harga').value = harga;
-            document.getElementById('layanan-satuan').value = satuan || 'Kg';
-            document.getElementById('layanan-form-title').innerText = 'Edit Layanan';
-        }
-
-        function resetFormLayanan() {
-            document.getElementById('layanan-id').value = '';
-            document.getElementById('layanan-nama').value = '';
-            document.getElementById('layanan-harga').value = '';
-            document.getElementById('layanan-satuan').value = '';
-            document.getElementById('layanan-form-title').innerText = 'Tambah Layanan Baru';
+            try {
+                if (id) {
+                    await rtdb.update(rtdb.ref(db, 'layanan/' + id), { nama, harga, satuan });
+                } else {
+                    const snap = await rtdb.get(rtdb.ref(db, 'layanan'));
+                    let maxOrder = 0;
+                    if (snap.exists()) {
+                        snap.forEach(child => {
+                            let val = child.val();
+                            if (val.order && val.order > maxOrder) maxOrder = val.order;
+                        });
+                    }
+                    const newRef = rtdb.push(rtdb.ref(db, 'layanan'));
+                    await rtdb.set(newRef, { nama, harga, satuan, order: maxOrder + 1 });
+                }
+                tutupModalQuickLayanan();
+                renderLayananList();
+                renderLayananSelect();
+                alert('Layanan berhasil disimpan!');
+            } catch (err) {
+                alert('Gagal menyimpan layanan: ' + err.message);
+            }
         }
 
         async function renderLayananList() {
@@ -863,39 +1019,104 @@
                 container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Belum ada layanan</p>`;
                 return;
             }
-            container.innerHTML = allLayananData.map((l, index) => `
-                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center">
-                    <div>
-                        <div class="font-bold">${l.nama}</div>
-                        <div class="text-xs text-blue-600 font-medium">Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'}</div>
+            container.innerHTML = allLayananData.map((l) => `
+                <div class="draggable-item bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center" data-id="${l._id}">
+                    <div class="flex items-center space-x-2.5">
+                        <span class="drag-handle text-slate-400 hover:text-slate-600 px-1 py-2"><i class="fa-solid fa-grip-vertical"></i></span>
+                        <div>
+                            <div class="font-bold">${l.nama}</div>
+                            <div class="text-xs text-blue-600 font-medium">Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'}</div>
+                        </div>
                     </div>
                     <div class="flex items-center space-x-1">
-                        <div class="flex flex-col mr-1">
-                            <button onclick="geserLayanan(${index}, -1)" ${index === 0 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-up"></i></button>
-                            <button onclick="geserLayanan(${index}, 1)" ${index === allLayananData.length - 1 ? 'disabled class="text-slate-200 cursor-not-allowed text-[10px]"' : 'class="text-slate-500 hover:text-blue-600 text-[10px]"'}><i class="fa-solid fa-chevron-down"></i></button>
-                        </div>
-                        <button onclick="editLayanan('${l._id}', '${l.nama}', ${l.harga}, '${l.satuan || 'Kg'}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="editLayananModal('${l._id}', '${l.nama}', ${l.harga}, '${l.satuan || 'Kg'}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
                         <button onclick="hapusLayanan('${l._id}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
             `).join('');
+
+            initDragAndDropLayanan();
         }
 
-        async function geserLayanan(index, direction) {
-            const targetIndex = index + direction;
-            if (targetIndex < 0 || targetIndex >= allLayananData.length) return;
-            let temp = allLayananData[index];
-            allLayananData[index] = allLayananData[targetIndex];
-            allLayananData[targetIndex] = temp;
-            try {
-                const updates = {};
-                allLayananData.forEach((item, idx) => { updates[item._id + '/order'] = idx + 1; });
-                await rtdb.update(rtdb.ref(db, 'layanan'), updates);
-                renderLayananList();
-                renderLayananSelect();
-            } catch (err) {
-                alert('Gagal mengubah urutan: ' + err.message);
-            }
+        function initDragAndDropLayanan() {
+            const container = document.getElementById('list-layanan-data');
+            const handles = container.querySelectorAll('.drag-handle');
+
+            handles.forEach(handle => {
+                let isDragging = false;
+                let startY = 0;
+                let currentY = 0;
+                let item = handle.closest('.draggable-item');
+                let placeholder = document.createElement('div');
+                placeholder.className = 'border-2 border-dashed border-blue-400 bg-blue-50/50 rounded-lg h-12 transition-all';
+
+                handle.addEventListener('pointerdown', (e) => {
+                    isDragging = true;
+                    startY = e.clientY;
+                    item.classList.add('dragging');
+                    handle.setPointerCapture(e.pointerId);
+
+                    item.parentNode.insertBefore(placeholder, item);
+                });
+
+                handle.addEventListener('pointermove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+
+                    currentY = e.clientY;
+                    const deltaY = currentY - startY;
+                    item.style.transform = `translateY(${deltaY}px)`;
+
+                    const siblings = Array.from(container.querySelectorAll('.draggable-item:not(.dragging)'));
+                    let nextSibling = siblings.find(sibling => {
+                        const box = sibling.getBoundingClientRect();
+                        return currentY < box.top + box.height / 2;
+                    });
+
+                    if (nextSibling) {
+                        container.insertBefore(placeholder, nextSibling);
+                    } else {
+                        container.appendChild(placeholder);
+                    }
+                });
+
+                const endDrag = async (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
+
+                    item.classList.remove('dragging');
+                    item.style.transform = '';
+
+                    if (placeholder.parentNode) {
+                        placeholder.parentNode.insertBefore(item, placeholder);
+                        placeholder.remove();
+                    }
+
+                    const newOrderIds = Array.from(container.querySelectorAll('.draggable-item')).map(el => el.dataset.id);
+                    
+                    let reorderedData = [];
+                    newOrderIds.forEach((id, idx) => {
+                        let found = allLayananData.find(l => l._id === id);
+                        if (found) {
+                            found.order = idx + 1;
+                            reorderedData.push(found);
+                        }
+                    });
+                    allLayananData = reorderedData;
+
+                    try {
+                        const updates = {};
+                        allLayananData.forEach((item, idx) => { updates[item._id + '/order'] = idx + 1; });
+                        await rtdb.update(rtdb.ref(db, 'layanan'), updates);
+                        renderLayananSelect();
+                    } catch (err) {
+                        alert('Gagal menyimpan urutan baru: ' + err.message);
+                    }
+                };
+
+                handle.addEventListener('pointerup', endDrag);
+                handle.addEventListener('pointercancel', endDrag);
+            });
         }
 
         async function hapusLayanan(id) {
@@ -957,10 +1178,17 @@
             if (!confirm('Proses transaksi & cetak struk?')) return;
 
             const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateStrYYYYMMDD = `${year}-${month}-${day}`;
+
             const transaksi = {
                 id: 'TRX-' + Date.now().toString().slice(-6),
-                tanggal: new Date().toLocaleString('id-ID'),
-                timestamp: Date.now(),
+                tanggal: now.toLocaleString('id-ID'),
+                tanggalYMD: dateStrYYYYMMDD,
+                timestamp: now.getTime(),
                 kasir: localStorage.getItem('sl_current_user'),
                 pelanggan: selectedPelangganObj,
                 items: [...cart],
@@ -1017,6 +1245,7 @@
             if (!confirm('Yakin ingin menghapus riwayat pesanan ini?')) return;
             try {
                 await rtdb.remove(rtdb.ref(db, 'riwayat/' + firebaseKey));
+                tutupModalDetailRiwayat();
                 renderRiwayatList();
             } catch (err) {
                 alert('Gagal menghapus riwayat: ' + err.message);
@@ -1038,6 +1267,13 @@
                 snap.forEach(childSnap => {
                     const val = childSnap.val();
                     val._fbKey = childSnap.key;
+                    if (!val.tanggalYMD && val.timestamp) {
+                        const d = new Date(val.timestamp);
+                        const y = d.getFullYear();
+                        const m = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        val.tanggalYMD = `${y}-${m}-${day}`;
+                    }
                     allRiwayatData.push(val);
                     if (val.id) riwayatCache[val.id] = val;
                 });
@@ -1051,45 +1287,216 @@
         function filterRiwayat() {
             const keyword = document.getElementById('search-riwayat').value.toLowerCase().trim();
             const container = document.getElementById('list-riwayat');
+
             let filtered = allRiwayatData;
-            if (keyword) {
-                filtered = allRiwayatData.filter(r => (r.id || '').toLowerCase().includes(keyword) || (r.pelanggan?.nama || '').toLowerCase().includes(keyword));
+
+            if (activeFilterStart && activeFilterEnd) {
+                filtered = filtered.filter(r => r.tanggalYMD >= activeFilterStart && r.tanggalYMD <= activeFilterEnd);
+            } else if (activeFilterStart) {
+                filtered = filtered.filter(r => r.tanggalYMD === activeFilterStart);
             }
+
+            if (keyword) {
+                filtered = filtered.filter(r => (r.id || '').toLowerCase().includes(keyword) || (r.pelanggan?.nama || '').toLowerCase().includes(keyword));
+            }
+
             if (filtered.length === 0) {
                 container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Tidak ada riwayat</p>`;
                 return;
             }
-            container.innerHTML = filtered.map(r => {
-                const itemsDetailHtml = r.items ? r.items.map(i => `
-                    <div class="flex justify-between text-slate-600 pl-2 border-l-2 border-blue-100 my-1">
-                        <span>${i.namaLayanan} (${i.qty} ${i.satuan})</span>
-                        <span class="font-semibold">Rp ${i.subtotal.toLocaleString()}</span>
-                    </div>
-                `).join('') : '';
 
-                return `
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-xs space-y-2">
-                        <div class="flex justify-between items-center font-bold text-slate-900">
-                            <span>${r.id}</span>
-                            <span class="text-blue-600">Rp ${(r.total || 0).toLocaleString()}</span>
-                        </div>
-                        <div class="text-slate-500">${r.tanggal} | Kasir: ${r.kasir}</div>
-                        <div class="text-slate-700 font-semibold">Pelanggan: ${r.pelanggan?.nama || '-'} (${r.pelanggan?.telp || '-'})</div>
-                        <div class="text-[11px] text-slate-500">Alamat: ${r.pelanggan?.alamat || '-'}</div>
-                        
-                        <!-- DETAIL PESANAN -->
-                        <div class="border-t border-slate-200 pt-2 space-y-1">
-                            <div class="font-bold text-[11px] text-slate-700 uppercase tracking-wide">Rincian Layanan:</div>
-                            ${itemsDetailHtml}
-                        </div>
-
-                        <div class="border-t border-slate-200 pt-2 flex justify-end space-x-2">
-                            <button onclick="hapusRiwayat('${r._fbKey}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-md font-semibold text-[11px]"><i class="fa-solid fa-trash"></i> Hapus</button>
-                            <button onclick="cetakUlangStruk('${r.id}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-md font-semibold text-[11px]"><i class="fa-solid fa-print"></i> Cetak</button>
-                        </div>
+            container.innerHTML = filtered.map(r => `
+                <div onclick="bukaDetailRiwayat('${r.id}')" class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-between items-center text-xs cursor-pointer hover:bg-blue-50/50 transition">
+                    <div>
+                        <div class="font-bold text-slate-900">${r.id}</div>
+                        <div class="text-slate-600 font-medium">${r.pelanggan?.nama || '-'}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-clock mr-1"></i>${r.tanggal || '-'}</div>
                     </div>
-                `;
-            }).join('');
+                    <div class="font-bold text-blue-600">
+                        Rp ${(r.total || 0).toLocaleString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /* ---------------- KALENDER RENTANG TANGGAL (MODAL) ---------------- */
+
+        function bukaModalRangePicker() {
+            selectedStartDate = activeFilterStart;
+            selectedEndDate = activeFilterEnd;
+            if (activeFilterStart) {
+                const parts = activeFilterStart.split('-');
+                currCalDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1);
+            } else {
+                currCalDate = new Date();
+            }
+            renderCalendarGrid();
+            document.getElementById('modal-range-picker').classList.remove('hidden');
+        }
+
+        function tutupModalRangePicker() {
+            document.getElementById('modal-range-picker').classList.add('hidden');
+        }
+
+        function prevCalMonth() {
+            currCalDate.setMonth(currCalDate.getMonth() - 1);
+            renderCalendarGrid();
+        }
+
+        function nextCalMonth() {
+            currCalDate.setMonth(currCalDate.getMonth() + 1);
+            renderCalendarGrid();
+        }
+
+        function renderCalendarGrid() {
+            const year = currCalDate.getFullYear();
+            const month = currCalDate.getMonth();
+
+            document.getElementById('cal-month-year-label').innerText = `${namaBulanIndo[month]} ${year}`;
+
+            const grid = document.getElementById('cal-days-grid');
+            grid.innerHTML = '';
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDaysMonth = new Date(year, month + 1, 0).getDate();
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+
+            for (let i = firstDayIndex; i > 0; i--) {
+                const dayNum = prevMonthLastDay - i + 1;
+                grid.innerHTML += `<div class="cal-day-item empty other-month">${dayNum}</div>`;
+            }
+
+            for (let day = 1; day <= totalDaysMonth; day++) {
+                const monthStr = String(month + 1).padStart(2, '0');
+                const dayStr = String(day).padStart(2, '0');
+                const fullDate = `${year}-${monthStr}-${dayStr}`;
+
+                let classNames = 'cal-day-item';
+
+                if (selectedStartDate && selectedEndDate) {
+                    if (fullDate === selectedStartDate && fullDate === selectedEndDate) {
+                        classNames += ' range-single';
+                    } else if (fullDate === selectedStartDate) {
+                        classNames += ' range-start';
+                    } else if (fullDate === selectedEndDate) {
+                        classNames += ' range-end';
+                    } else if (fullDate > selectedStartDate && fullDate < selectedEndDate) {
+                        classNames += ' in-range';
+                    }
+                } else if (selectedStartDate && fullDate === selectedStartDate) {
+                    classNames += ' range-single';
+                }
+
+                grid.innerHTML += `<div class="${classNames}" onclick="pilihTanggalHari('${fullDate}')">${day}</div>`;
+            }
+
+            updateCalStatusText();
+        }
+
+        function pilihTanggalHari(dateStr) {
+            if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
+                selectedStartDate = dateStr;
+                selectedEndDate = null;
+            } else if (selectedStartDate && !selectedEndDate) {
+                if (dateStr < selectedStartDate) {
+                    selectedEndDate = selectedStartDate;
+                    selectedStartDate = dateStr;
+                } else {
+                    selectedEndDate = dateStr;
+                }
+            }
+            renderCalendarGrid();
+        }
+
+        function updateCalStatusText() {
+            const info = document.getElementById('cal-status-info');
+            if (selectedStartDate && selectedEndDate) {
+                info.innerText = `${formatDateShort(selectedStartDate)} - ${formatDateShort(selectedEndDate)}`;
+            } else if (selectedStartDate) {
+                info.innerText = `Awal: ${formatDateShort(selectedStartDate)} (Pilih Selesai)`;
+            } else {
+                info.innerText = 'Pilih rentang tanggal';
+            }
+        }
+
+        function formatDateShort(ymd) {
+            const p = ymd.split('-');
+            return `${p[2]}/${p[1]}`;
+        }
+
+        function terapkanRentangTanggal() {
+            activeFilterStart = selectedStartDate;
+            activeFilterEnd = selectedEndDate || selectedStartDate;
+
+            const labelBtn = document.getElementById('label-filter-rentang');
+            const btnReset = document.getElementById('btn-reset-rentang');
+
+            if (activeFilterStart && activeFilterEnd) {
+                if (activeFilterStart === activeFilterEnd) {
+                    labelBtn.innerText = formatDateShort(activeFilterStart);
+                } else {
+                    labelBtn.innerText = `${formatDateShort(activeFilterStart)} - ${formatDateShort(activeFilterEnd)}`;
+                }
+                btnReset.classList.remove('hidden');
+            } else {
+                labelBtn.innerText = 'Semua Tanggal';
+                btnReset.classList.add('hidden');
+            }
+
+            tutupModalRangePicker();
+            filterRiwayat();
+        }
+
+        function resetFilterRentang() {
+            activeFilterStart = null;
+            activeFilterEnd = null;
+            selectedStartDate = null;
+            selectedEndDate = null;
+
+            document.getElementById('label-filter-rentang').innerText = 'Semua Tanggal';
+            document.getElementById('btn-reset-rentang').classList.add('hidden');
+            filterRiwayat();
+        }
+
+        /* ---------------- DETAIL MODAL RIWAYAT ---------------- */
+
+        function bukaDetailRiwayat(trxId) {
+            const r = riwayatCache[trxId];
+            if (!r) return;
+
+            const itemsDetailHtml = r.items ? r.items.map(i => `
+                <div class="flex justify-between text-slate-600 pl-2 border-l-2 border-blue-100 my-1">
+                    <span>${i.namaLayanan} (${i.qty} ${i.satuan})</span>
+                    <span class="font-semibold">Rp ${i.subtotal.toLocaleString()}</span>
+                </div>
+            `).join('') : '';
+
+            const contentHtml = `
+                <div class="space-y-2">
+                    <div class="flex justify-between font-bold text-slate-900 border-b border-slate-100 pb-1">
+                        <span>No. Nota: ${r.id}</span>
+                        <span class="text-blue-600">Rp ${(r.total || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="text-slate-500">${r.tanggal} | Kasir: ${r.kasir}</div>
+                    <div class="text-slate-700 font-semibold">Pelanggan: ${r.pelanggan?.nama || '-'} (${r.pelanggan?.telp || '-'})</div>
+                    <div class="text-[11px] text-slate-500">Alamat: ${r.pelanggan?.alamat || '-'}</div>
+                    
+                    <div class="border-t border-slate-200 pt-2 space-y-1">
+                        <div class="font-bold text-[11px] text-slate-700 uppercase tracking-wide">Rincian Layanan:</div>
+                        ${itemsDetailHtml}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('content-detail-riwayat').innerHTML = contentHtml;
+            document.getElementById('modal-btn-hapus').setAttribute('onclick', `hapusRiwayat('${r._fbKey}')`);
+            document.getElementById('modal-btn-cetak').setAttribute('onclick', `cetakUlangStruk('${r.id}')`);
+
+            document.getElementById('modal-detail-riwayat').classList.remove('hidden');
+        }
+
+        function tutupModalDetailRiwayat() {
+            document.getElementById('modal-detail-riwayat').classList.add('hidden');
         }
     </script>
 </body>
