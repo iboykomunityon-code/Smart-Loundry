@@ -201,7 +201,12 @@
                         <span>Total:</span>
                         <span id="cart-total" class="text-blue-600">Rp 0</span>
                     </div>
-                    <button onclick="prosesTransaksi()" class="w-full mt-3 bg-blue-600 text-white py-3 rounded-xl font-semibold shadow-md shadow-blue-500/20 hover:bg-blue-700 transition">Proses & Cetak Struk</button>
+                    
+                    <!-- Tombol Aksi Simpan & Cetak -->
+                    <div class="flex space-x-2 mt-3">
+                        <button onclick="prosesTransaksi(false)" class="w-1/3 bg-blue-600 text-white py-3 rounded-xl font-semibold shadow-md shadow-blue-500/20 hover:bg-blue-700 transition text-sm">Simpan</button>
+                        <button onclick="prosesTransaksi(true)" class="w-2/3 bg-blue-600 text-white py-3 rounded-xl font-semibold shadow-md shadow-blue-500/20 hover:bg-blue-700 transition text-sm">Cetak</button>
+                    </div>
                 </div>
             </div>
 
@@ -1193,10 +1198,14 @@
             document.getElementById('cart-total').innerText = 'Rp ' + total.toLocaleString();
         }
 
-        async function prosesTransaksi() {
+        async function prosesTransaksi(shouldPrint) {
             if (!selectedPelangganObj) { alert('Pilih pelanggan!'); return; }
             if (cart.length === 0) { alert('Keranjang kosong!'); return; }
-            if (!confirm('Proses transaksi & cetak struk?')) return;
+
+            // Jika tombol Simpan yang ditekan, berikan konfirmasi terlebih dahulu
+            if (!shouldPrint) {
+                if (!confirm('Simpan transaksi ini ke riwayat?')) return;
+            }
 
             const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
             const now = new Date();
@@ -1219,7 +1228,10 @@
             try {
                 const newRef = rtdb.push(rtdb.ref(db, 'riwayat'));
                 await rtdb.set(newRef, transaksi);
-                cetakStruk(transaksi);
+
+                if (shouldPrint) {
+                    cetakStruk(transaksi);
+                }
 
                 cart = [];
                 selectedPelangganObj = null;
@@ -1228,12 +1240,17 @@
                 document.getElementById('input-qty').value = '1';
                 renderCart();
                 renderRiwayatList();
+
+                // Berpindah ke tab riwayat HANYA JIKA tombol Simpan yang ditekan
+                if (!shouldPrint) {
+                    switchTab('riwayat');
+                }
             } catch (err) {
                 alert('Gagal transaksi: ' + err.message);
             }
         }
 
-        // FUNGSI CETAK STRUK STRUKTURAL BARU (NAMA BOLD & ALAMAT PANJANG RATA KANAN)
+        // FUNGSI CETAK STRUK STRUKTURAL (NAMA BOLD & ALAMAT PANJANG RATA KANAN)
         function cetakStruk(trx) {
             document.getElementById('print-info').innerHTML = `
                 <div style="display: flex; justify-content: space-between;"><span>No. Nota :</span><span>${trx.id}</span></div>
