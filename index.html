@@ -47,6 +47,13 @@
         .drag-handle { touch-action: none; cursor: grab; }
         .drag-handle:active { cursor: grabbing; }
 
+        /* Mencegah scroll pada body saat ada modal/pop-up yang aktif */
+        body.modal-open {
+            overflow: hidden !important;
+            position: fixed;
+            width: 100%;
+        }
+
         /* Custom Styling Kalender Rentang Tanggal (Dark Theme) */
         .cal-day-item {
             aspect-ratio: 1;
@@ -249,7 +256,6 @@
                         <button onclick="renderRiwayatList()" class="text-xs text-blue-600 font-medium hover:underline"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
                     </div>
                     
-                    <!-- PENCARIAN & TRIGGER KALENDER -->
                     <div class="flex space-x-2">
                         <div class="relative flex-1">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -484,6 +490,15 @@
                 loadDataToUI();
             }
         });
+
+        // Helper untuk mengunci/membuka scroll background secara universal
+        function toggleBodyScroll(lock) {
+            if (lock) {
+                document.body.classList.add('modal-open');
+            } else {
+                document.body.classList.remove('modal-open');
+            }
+        }
 
         function togglePasswordVisibility() {
             const passInput = document.getElementById('new-acc-pass');
@@ -795,6 +810,7 @@
             document.getElementById('pelanggan-modal-title').innerText = 'Tambahkan Pelanggan';
             document.getElementById('dropdown-pelanggan').classList.add('hidden');
             document.getElementById('modal-quick-pelanggan').classList.remove('hidden');
+            toggleBodyScroll(true);
         }
 
         function editPelangganModal(id, nama, telp, alamat) {
@@ -804,10 +820,12 @@
             document.getElementById('quick-pel-alamat').value = alamat === '-' ? '' : alamat;
             document.getElementById('pelanggan-modal-title').innerText = 'Tambahkan Pelanggan';
             document.getElementById('modal-quick-pelanggan').classList.remove('hidden');
+            toggleBodyScroll(true);
         }
 
         function tutupModalQuickPelanggan() {
             document.getElementById('modal-quick-pelanggan').classList.add('hidden');
+            toggleBodyScroll(false);
         }
 
         async function simpanQuickPelanggan(e) {
@@ -952,6 +970,7 @@
             document.getElementById('quick-lay-satuan').value = '';
             document.getElementById('layanan-modal-title').innerText = 'Tambahkan Layanan';
             document.getElementById('modal-quick-layanan').classList.remove('hidden');
+            toggleBodyScroll(true);
         }
 
         function editLayananModal(id, nama, harga, satuan) {
@@ -961,10 +980,12 @@
             document.getElementById('quick-lay-satuan').value = satuan || 'Kg';
             document.getElementById('layanan-modal-title').innerText = 'Tambahkan Layanan';
             document.getElementById('modal-quick-layanan').classList.remove('hidden');
+            toggleBodyScroll(true);
         }
 
         function tutupModalQuickLayanan() {
             document.getElementById('modal-quick-layanan').classList.add('hidden');
+            toggleBodyScroll(false);
         }
 
         async function simpanQuickLayanan(e) {
@@ -1332,10 +1353,12 @@
             }
             renderCalendarGrid();
             document.getElementById('modal-range-picker').classList.remove('hidden');
+            toggleBodyScroll(true);
         }
 
         function tutupModalRangePicker() {
             document.getElementById('modal-range-picker').classList.add('hidden');
+            toggleBodyScroll(false);
         }
 
         function prevCalMonth() {
@@ -1493,10 +1516,12 @@
             document.getElementById('modal-btn-cetak').setAttribute('onclick', `cetakUlangStruk('${r.id}')`);
 
             document.getElementById('modal-detail-riwayat').classList.remove('hidden');
+            toggleBodyScroll(true);
         }
 
         function tutupModalDetailRiwayat() {
             document.getElementById('modal-detail-riwayat').classList.add('hidden');
+            toggleBodyScroll(false);
         }
     </script>
 </body>
