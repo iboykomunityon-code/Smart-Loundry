@@ -1233,14 +1233,18 @@
             }
         }
 
+        // FUNGSI CETAK STRUK STRUKTURAL BARU (NAMA BOLD & ALAMAT PANJANG RATA KANAN)
         function cetakStruk(trx) {
             document.getElementById('print-info').innerHTML = `
                 <div style="display: flex; justify-content: space-between;"><span>No. Nota :</span><span>${trx.id}</span></div>
                 <div style="display: flex; justify-content: space-between;"><span>Tanggal  :</span><span>${trx.tanggal}</span></div>
                 <div style="display: flex; justify-content: space-between;"><span>Kasir    :</span><span>${trx.kasir}</span></div>
-                <div style="display: flex; justify-content: space-between;"><span>Pelanggan:</span><span>${trx.pelanggan.nama}</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>Pelanggan:</span><span style="font-weight: bold; font-size: 11px;">${trx.pelanggan.nama}</span></div>
                 <div style="display: flex; justify-content: space-between;"><span>No. Telp :</span><span>${trx.pelanggan.telp}</span></div>
-                <div style="display: flex; justify-content: space-between;"><span>Alamat   :</span><span>${trx.pelanggan.alamat || '-'}</span></div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <span style="white-space: nowrap; margin-right: 4px;">Alamat   :</span>
+                    <span style="text-align: right; word-break: break-word; flex: 1;">${trx.pelanggan.alamat || '-'}</span>
+                </div>
             `;
             
             document.getElementById('print-items').innerHTML = trx.items.map(i => `
