@@ -290,29 +290,17 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <h3 id="akun-form-title" class="font-bold text-sm text-slate-900 mb-3">Tambah Akun Kasir Baru</h3>
-                    <form onsubmit="simpanAkunKasir(event)" class="space-y-3">
-                        <input type="hidden" id="akun-doc-id">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
-                            <input type="text" id="new-acc-user" placeholder="Username kasir..." required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
-                            <div class="relative">
-                                <input type="password" id="new-acc-pass" placeholder="••••••" required class="w-full px-4 py-2 pr-10 border border-slate-200 rounded-lg text-sm">
-                                <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
-                                    <i id="eye-icon" class="fa-solid fa-eye text-xs"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button type="submit" class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg text-sm font-semibold">Simpan Akun</button>
-                            <button type="button" onclick="resetFormAkun()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold">Batal</button>
-                        </div>
-                    </form>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-900">Akun Kasir</h3>
+                        <p class="text-xs text-slate-500">Kelola atau tambah akun kasir baru.</p>
+                    </div>
+                    <button onclick="bukaModalAkun()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md hover:bg-blue-700 transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>Sign In</span>
+                    </button>
                 </div>
+
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                     <h3 class="font-bold text-sm text-slate-900 mb-3">Daftar Akun Kasir</h3>
                     <div id="list-akun-data" class="space-y-2 text-sm max-h-48 overflow-y-auto"></div>
@@ -328,6 +316,36 @@
             <button onclick="switchTab('layanan')" class="nav-btn flex flex-col items-center text-slate-400 text-xs font-medium" data-target="layanan"><i class="fa-solid fa-tags text-base"></i> Layanan</button>
             <button onclick="switchTab('riwayat')" class="nav-btn flex flex-col items-center text-slate-400 text-xs font-medium" data-target="riwayat"><i class="fa-solid fa-clock-rotate-left text-base"></i> Riwayat</button>
         </nav>
+
+        <!-- MODAL SIGN IN / TAMBAH AKUN KASIR -->
+        <div id="modal-akun" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-xl space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <h3 id="akun-form-title" class="font-bold text-sm text-slate-900">Sign In Akun Kasir Baru</h3>
+                    <button onclick="tutupModalAkun()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+                </div>
+                <form onsubmit="simpanAkunKasir(event)" class="space-y-3 pt-1">
+                    <input type="hidden" id="akun-doc-id">
+                    <div>
+                        <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Username</label>
+                        <input type="text" id="new-acc-user" placeholder="Username kasir..." required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">Password</label>
+                        <div class="relative">
+                            <input type="password" id="new-acc-pass" placeholder="••••••" required class="w-full px-3 py-2 pr-10 border border-slate-200 rounded-lg text-sm bg-slate-50">
+                            <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                                <i id="eye-icon" class="fa-solid fa-eye text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 pt-2">
+                        <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Simpan Akun</button>
+                        <button type="button" onclick="tutupModalAkun()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <!-- MODAL RANGE PICKER KALENDER -->
         <div id="modal-range-picker" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
@@ -379,6 +397,21 @@
             </div>
         </div>
 
+        <!-- MODAL DETAIL PELANGGAN -->
+        <div id="modal-detail-pelanggan" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-xl space-y-3 max-h-[85vh] overflow-y-auto">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <h3 class="font-bold text-sm text-slate-900">Detail Pelanggan</h3>
+                    <button onclick="tutupModalDetailPelanggan()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+                </div>
+                <div id="content-detail-pelanggan" class="space-y-2 text-xs"></div>
+                <div class="pt-2 flex space-x-2">
+                    <button id="pelanggan-btn-hapus" type="button" class="flex-1 bg-red-50 text-red-600 py-2 rounded-lg font-semibold text-xs"><i class="fa-solid fa-trash"></i> Hapus</button>
+                    <button id="pelanggan-btn-edit" type="button" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold text-xs"><i class="fa-solid fa-pen"></i> Edit</button>
+                </div>
+            </div>
+        </div>
+
         <!-- MODAL QUICK ADD / EDIT LAYANAN -->
         <div id="modal-quick-layanan" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 hidden">
             <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-xl space-y-3">
@@ -404,6 +437,21 @@
                         <button type="button" onclick="tutupModalQuickLayanan()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold">Batal</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- MODAL DETAIL LAYANAN -->
+        <div id="modal-detail-layanan" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-xl space-y-3 max-h-[85vh] overflow-y-auto">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <h3 class="font-bold text-sm text-slate-900">Detail Layanan</h3>
+                    <button onclick="tutupModalDetailLayanan()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+                </div>
+                <div id="content-detail-layanan" class="space-y-2 text-xs"></div>
+                <div class="pt-2 flex space-x-2">
+                    <button id="layanan-btn-hapus" type="button" class="flex-1 bg-red-50 text-red-600 py-2 rounded-lg font-semibold text-xs"><i class="fa-solid fa-trash"></i> Hapus</button>
+                    <button id="layanan-btn-edit" type="button" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold text-xs"><i class="fa-solid fa-pen"></i> Edit</button>
+                </div>
             </div>
         </div>
 
@@ -472,6 +520,8 @@
         let allRiwayatData = []; 
         let allPelangganData = []; 
         let allLayananData = []; 
+        let pelangganCache = {};
+        let layananCache = {};
 
         let currCalDate = new Date();
         let selectedStartDate = null; 
@@ -655,6 +705,20 @@
             loadLogoFromDatabase();
         }
 
+        function bukaModalAkun() {
+            document.getElementById('akun-doc-id').value = '';
+            document.getElementById('new-acc-user').value = '';
+            document.getElementById('new-acc-pass').value = '';
+            document.getElementById('akun-form-title').innerText = 'Sign In Akun Kasir Baru';
+            document.getElementById('modal-akun').classList.remove('hidden');
+            toggleBodyScroll(true);
+        }
+
+        function tutupModalAkun() {
+            document.getElementById('modal-akun').classList.add('hidden');
+            toggleBodyScroll(false);
+        }
+
         async function simpanAkunKasir(e) {
             e.preventDefault();
             const currentUser = localStorage.getItem('sl_current_user');
@@ -686,7 +750,7 @@
                     const newRef = rtdb.push(rtdb.ref(db, 'accounts'));
                     await rtdb.set(newRef, { user: u, pass: p });
                 }
-                resetFormAkun();
+                tutupModalAkun();
                 renderAkunList();
                 alert('Akun berhasil disimpan!');
             } catch (err) {
@@ -704,13 +768,8 @@
             document.getElementById('new-acc-user').value = u;
             document.getElementById('new-acc-pass').value = p;
             document.getElementById('akun-form-title').innerText = 'Edit Akun Saya';
-        }
-
-        function resetFormAkun() {
-            document.getElementById('akun-doc-id').value = '';
-            document.getElementById('new-acc-user').value = '';
-            document.getElementById('new-acc-pass').value = '';
-            document.getElementById('akun-form-title').innerText = 'Tambah Akun Kasir Baru';
+            document.getElementById('modal-akun').classList.remove('hidden');
+            toggleBodyScroll(true);
         }
 
         async function renderAkunList() {
@@ -808,6 +867,7 @@
         }
 
         function bukaModalQuickPelanggan(nama = '') {
+            tutupModalDetailPelanggan();
             document.getElementById('quick-pel-id').value = '';
             document.getElementById('quick-pel-nama').value = nama;
             document.getElementById('quick-pel-telp').value = '';
@@ -819,6 +879,7 @@
         }
 
         function editPelangganModal(id, nama, telp, alamat) {
+            tutupModalDetailPelanggan();
             document.getElementById('quick-pel-id').value = id;
             document.getElementById('quick-pel-nama').value = nama;
             document.getElementById('quick-pel-telp').value = telp === '-' ? '' : telp;
@@ -888,14 +949,17 @@
                 const snap = await rtdb.get(rtdb.ref(db, 'pelanggan'));
                 if (!snap.exists()) {
                     allPelangganData = [];
+                    pelangganCache = {};
                     container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">Belum ada pelanggan</p>`;
                     return;
                 }
                 allPelangganData = [];
+                pelangganCache = {};
                 snap.forEach(childSnap => {
                     const p = childSnap.val();
                     p._fbKey = childSnap.key;
                     allPelangganData.push(p);
+                    pelangganCache[p._fbKey] = p;
                 });
                 filterPelangganList();
             } catch (err) {
@@ -927,23 +991,54 @@
             }
 
             container.innerHTML = filtered.map(p => `
-                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center">
-                    <div>
-                        <div class="font-bold">${p.nama}</div>
-                        <div class="text-xs text-slate-500">${p.telp} | ${p.alamat}</div>
+                <div onclick="bukaDetailPelanggan('${p._fbKey}')" class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-between items-center cursor-pointer hover:bg-blue-50/50 transition">
+                    <div class="overflow-hidden pr-2 flex-1">
+                        <div class="font-bold text-slate-900">${p.nama}</div>
+                        <div class="text-xs text-slate-500 truncate max-w-full">${p.telp} | ${p.alamat}</div>
                     </div>
-                    <div class="flex space-x-1">
-                        <button onclick="editPelangganModal('${p._fbKey}', '${p.nama}', '${p.telp}', '${p.alamat}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="hapusPelanggan('${p._fbKey}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
+                    <div class="text-slate-400 text-xs">
+                        <i class="fa-solid fa-chevron-right"></i>
                     </div>
                 </div>
             `).join('');
         }
 
-        async function hapusPelanggan(id) {
+        function bukaDetailPelanggan(id) {
+            const p = pelangganCache[id];
+            if (!p) return;
+
+            const contentHtml = `
+                <div class="space-y-2">
+                    <div class="font-bold text-sm text-slate-900 border-b border-slate-100 pb-1">
+                        ${p.nama}
+                    </div>
+                    <div class="text-slate-600"><strong>No. Telp / WA:</strong> ${p.telp}</div>
+                    <div class="text-slate-600"><strong>Alamat Lengkap:</strong><br><span class="text-slate-800">${p.alamat || '-'}</span></div>
+                </div>
+            `;
+
+            document.getElementById('content-detail-pelanggan').innerHTML = contentHtml;
+            document.getElementById('pelanggan-btn-hapus').setAttribute('onclick', `hapusPelangganDariModal('${p._fbKey}')`);
+            document.getElementById('pelanggan-btn-edit').setAttribute('onclick', `editPelangganModal('${p._fbKey}', '${p.nama}', '${p.telp}', '${p.alamat}')`);
+
+            document.getElementById('modal-detail-pelanggan').classList.remove('hidden');
+            toggleBodyScroll(true);
+        }
+
+        function tutupModalDetailPelanggan() {
+            document.getElementById('modal-detail-pelanggan').classList.add('hidden');
+            toggleBodyScroll(false);
+        }
+
+        async function hapusPelangganDariModal(id) {
             if(!confirm('Hapus pelanggan ini?')) return;
-            await rtdb.remove(rtdb.ref(db, 'pelanggan/' + id));
-            renderPelangganList();
+            try {
+                await rtdb.remove(rtdb.ref(db, 'pelanggan/' + id));
+                tutupModalDetailPelanggan();
+                renderPelangganList();
+            } catch (err) {
+                alert('Gagal menghapus pelanggan: ' + err.message);
+            }
         }
 
         async function renderLayananSelect() {
@@ -969,6 +1064,7 @@
         }
 
         function bukaModalQuickLayanan() {
+            tutupModalDetailLayanan();
             document.getElementById('quick-lay-id').value = '';
             document.getElementById('quick-lay-nama').value = '';
             document.getElementById('quick-lay-harga').value = '';
@@ -979,6 +1075,7 @@
         }
 
         function editLayananModal(id, nama, harga, satuan) {
+            tutupModalDetailLayanan();
             document.getElementById('quick-lay-id').value = id;
             document.getElementById('quick-lay-nama').value = nama;
             document.getElementById('quick-lay-harga').value = harga;
@@ -1033,11 +1130,13 @@
             const snap = await rtdb.get(rtdb.ref(db, 'layanan'));
             const container = document.getElementById('list-layanan-data');
             allLayananData = [];
+            layananCache = {};
             if (snap.exists()) {
                 snap.forEach(childSnap => {
                     const l = childSnap.val();
                     l._id = childSnap.key;
                     allLayananData.push(l);
+                    layananCache[l._id] = l;
                 });
                 allLayananData.sort((a, b) => (a.order || 0) - (b.order || 0));
             }
@@ -1047,21 +1146,59 @@
             }
             container.innerHTML = allLayananData.map((l) => `
                 <div class="draggable-item bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center" data-id="${l._id}">
-                    <div class="flex items-center space-x-2.5">
-                        <span class="drag-handle text-slate-400 hover:text-slate-600 px-1 py-2"><i class="fa-solid fa-grip-vertical"></i></span>
+                    <div class="flex items-center space-x-2.5 flex-1 cursor-pointer" onclick="bukaDetailLayanan('${l._id}')">
+                        <span class="drag-handle text-slate-400 hover:text-slate-600 px-1 py-2" onclick="event.stopPropagation()"><i class="fa-solid fa-grip-vertical"></i></span>
                         <div>
-                            <div class="font-bold">${l.nama}</div>
+                            <div class="font-bold text-slate-900">${l.nama}</div>
                             <div class="text-xs text-blue-600 font-medium">Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'}</div>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-1">
-                        <button onclick="editLayananModal('${l._id}', '${l.nama}', ${l.harga}, '${l.satuan || 'Kg'}')" class="text-blue-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="hapusLayanan('${l._id}')" class="text-red-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
+                    <div class="text-slate-400 text-xs pl-2 cursor-pointer" onclick="bukaDetailLayanan('${l._id}')">
+                        <i class="fa-solid fa-chevron-right"></i>
                     </div>
                 </div>
             `).join('');
 
             initDragAndDropLayanan();
+        }
+
+        function bukaDetailLayanan(id) {
+            const l = layananCache[id];
+            if (!l) return;
+
+            const contentHtml = `
+                <div class="space-y-2">
+                    <div class="font-bold text-sm text-slate-900 border-b border-slate-100 pb-1">
+                        ${l.nama}
+                    </div>
+                    <div class="text-slate-600"><strong>Harga Dasar:</strong> Rp ${l.harga.toLocaleString()}</div>
+                    <div class="text-slate-600"><strong>Satuan:</strong> ${l.satuan || 'Kg'}</div>
+                </div>
+            `;
+
+            document.getElementById('content-detail-layanan').innerHTML = contentHtml;
+            document.getElementById('layanan-btn-hapus').setAttribute('onclick', `hapusLayananDariModal('${l._id}')`);
+            document.getElementById('layanan-btn-edit').setAttribute('onclick', `editLayananModal('${l._id}', '${l.nama}', ${l.harga}, '${l.satuan || 'Kg'}')`);
+
+            document.getElementById('modal-detail-layanan').classList.remove('hidden');
+            toggleBodyScroll(true);
+        }
+
+        function tutupModalDetailLayanan() {
+            document.getElementById('modal-detail-layanan').classList.add('hidden');
+            toggleBodyScroll(false);
+        }
+
+        async function hapusLayananDariModal(id) {
+            if(!confirm('Hapus layanan ini?')) return;
+            try {
+                await rtdb.remove(rtdb.ref(db, 'layanan/' + id));
+                tutupModalDetailLayanan();
+                renderLayananList();
+                renderLayananSelect();
+            } catch (err) {
+                alert('Gagal menghapus layanan: ' + err.message);
+            }
         }
 
         function initDragAndDropLayanan() {
@@ -1143,13 +1280,6 @@
                 handle.addEventListener('pointerup', endDrag);
                 handle.addEventListener('pointercancel', endDrag);
             });
-        }
-
-        async function hapusLayanan(id) {
-            if(!confirm('Hapus layanan ini?')) return;
-            await rtdb.remove(rtdb.ref(db, 'layanan/' + id));
-            renderLayananList();
-            renderLayananSelect();
         }
 
         function tambahKeKeranjang() {
