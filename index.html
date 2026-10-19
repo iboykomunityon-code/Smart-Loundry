@@ -293,7 +293,7 @@
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
                     <div>
                         <h3 class="font-bold text-sm text-slate-900">Akun Kasir</h3>
-                        <p class="text-xs text-slate-500">Kelola atau tambah akun kasir baru.</p>
+                        <p class="text-xs text-slate-500">Masuk atau ganti akun kasir baru.</p>
                     </div>
                     <button onclick="bukaModalAkun()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md hover:bg-blue-700 transition flex items-center space-x-1.5">
                         <i class="fa-solid fa-right-to-bracket"></i>
@@ -302,8 +302,8 @@
                 </div>
 
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-sm text-slate-900 mb-3">Daftar Akun Kasir</h3>
-                    <div id="list-akun-data" class="space-y-2 text-sm max-h-48 overflow-y-auto"></div>
+                    <h3 class="font-bold text-sm text-slate-900 mb-3">Akun Anda</h3>
+                    <div id="list-akun-data" class="space-y-2 text-sm"></div>
                 </div>
             </div>
 
@@ -694,6 +694,7 @@
             if (tabId === 'riwayat') renderRiwayatList();
             else if (tabId === 'pelanggan') renderPelangganList();
             else if (tabId === 'layanan') renderLayananList();
+            else if (tabId === 'pengaturan') renderAkunList();
         }
 
         function loadDataToUI() {
@@ -758,18 +759,32 @@
             }
         }
 
-        function editAkun(id, u, p) {
+        async function editAkunLogin() {
             const currentUser = localStorage.getItem('sl_current_user');
-            if (u !== currentUser) {
-                alert('Anda tidak memiliki izin untuk mengedit akun kasir lain!');
-                return;
+            const snap = await rtdb.get(rtdb.ref(db, 'accounts'));
+            let foundId = null;
+            let foundData = null;
+
+            if (snap.exists()) {
+                snap.forEach(childSnap => {
+                    const acc = childSnap.val();
+                    if (acc.user === currentUser) {
+                        foundId = childSnap.key;
+                        foundData = acc;
+                    }
+                });
             }
-            document.getElementById('akun-doc-id').value = id;
-            document.getElementById('new-acc-user').value = u;
-            document.getElementById('new-acc-pass').value = p;
-            document.getElementById('akun-form-title').innerText = 'Edit Akun Saya';
-            document.getElementById('modal-akun').classList.remove('hidden');
-            toggleBodyScroll(true);
+
+            if (foundId && foundData) {
+                document.getElementById('akun-doc-id').value = foundId;
+                document.getElementById('new-acc-user').value = foundData.user;
+                document.getElementById('new-acc-pass').value = foundData.pass;
+                document.getElementById('akun-form-title').innerText = 'Edit Akun Saya';
+                document.getElementById('modal-akun').classList.remove('hidden');
+                toggleBodyScroll(true);
+            } else {
+                alert('Data akun yang sedang login tidak ditemukan.');
+            }
         }
 
         async function renderAkunList() {
@@ -777,52 +792,37 @@
             const snap = await rtdb.get(rtdb.ref(db, 'accounts'));
             const container = document.getElementById('list-akun-data');
             let html = '';
-            let count = 0;
+            let foundActive = false;
+
             if (snap.exists()) {
                 snap.forEach(childSnap => {
-                    count++;
                     const acc = childSnap.val();
                     const id = childSnap.key;
-                    const isOwner = (acc.user === currentUser);
-                    
-                    html += `
-                        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center text-xs">
-                            <div>
-                                <div class="font-bold text-slate-900">${acc.user} ${isOwner ? '<span class="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-normal">Akun Anda</span>' : ''}</div>
-                                <div class="text-slate-400">Password: ••••••</div>
+                    if (acc.user === currentUser) {
+                        foundActive = true;
+                        html += `
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-between items-center text-xs">
+                                <div>
+                                    <div class="font-bold text-slate-900">${acc.user} <span class="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-normal">Aktif</span></div>
+                                    <div class="text-slate-400">Password: ••••••</div>
+                                </div>
+                                <div class="flex space-x-1">
+                                    <button onclick="editAkunLogin()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 hover:bg-blue-700 transition" title="Edit Akun">
+                                        <i class="fa-solid fa-pen"></i>
+                                        <span>Edit Akun</span>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="flex space-x-1">
-                                ${isOwner ? `<button onclick="editAkun('${id}', '${acc.user}', '${acc.pass}')" class="text-blue-500 p-1.5" title="Edit Akun"><i class="fa-solid fa-pen"></i></button>` : ''}
-                                ${isOwner && count > 1 ? `<button onclick="hapusAkun('${id}', '${acc.user}')" class="text-red-500 p-1.5" title="Hapus Akun Anda"><i class="fa-solid fa-trash"></i></button>` : ''}
-                            </div>
-                        </div>
-                    `;
+                        `;
+                    }
                 });
             }
+
+            if (!foundActive) {
+                html = `<p class="text-slate-400 text-center py-4 text-xs">Tidak ada akun aktif</p>`;
+            }
+
             container.innerHTML = html;
-        }
-
-        async function hapusAkun(id, targetUser) {
-            const currentUser = localStorage.getItem('sl_current_user');
-            if (targetUser !== currentUser) {
-                alert('Anda tidak memiliki izin untuk menghapus akun kasir lain!');
-                return;
-            }
-
-            const snap = await rtdb.get(rtdb.ref(db, 'accounts'));
-            let size = 0;
-            snap.forEach(() => size++);
-            if (size <= 1) {
-                alert('Minimal harus ada 1 akun kasir di dalam sistem!');
-                return;
-            }
-
-            if(!confirm('Yakin ingin menghapus akun Anda sendiri? Anda akan keluar dari aplikasi.')) return;
-            
-            await rtdb.remove(rtdb.ref(db, 'accounts/' + id));
-            localStorage.removeItem('sl_is_logged');
-            localStorage.removeItem('sl_current_user');
-            location.reload();
         }
 
         async function filterPelanggan() {
