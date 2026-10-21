@@ -356,6 +356,19 @@
                     <div id="cal-month-year-label" class="font-bold text-sm tracking-wide">Desember 2026</div>
                     <button onclick="nextCalMonth()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-slate-300"><i class="fa-solid fa-chevron-right text-xs"></i></button>
                 </div>
+
+                <!-- Tombol Opsi Cepat -->
+                <div class="flex space-x-2 border-b border-slate-700/60 pb-2">
+                    <button onclick="pilihFilterBulanIni()" class="flex-1 py-1.5 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded-lg text-xs font-semibold border border-blue-500/30 transition flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-calendar-day text-[10px]"></i>
+                        <span>Bulan Ini</span>
+                    </button>
+                    <button onclick="pilihFilterSemuaTanggal()" class="flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold border border-slate-600 transition flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-list text-[10px]"></i>
+                        <span>Semua Tanggal</span>
+                    </button>
+                </div>
+
                 <div class="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400 uppercase">
                     <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
                 </div>
@@ -536,6 +549,9 @@
             db = window.db;
             rtdb = window.fbRTDB;
 
+            // Set filter riwayat secara default ke Bulan Ini saat inisialisasi
+            setDefaultMonthFilter();
+
             await seedDefaultDataIfNeeded();
             loadLogoFromDatabase();
 
@@ -546,6 +562,23 @@
                 loadDataToUI();
             }
         });
+
+        // Mengatur default filter riwayat ke bulan saat ini
+        function setDefaultMonthFilter() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const lastDay = new Date(year, month + 1, 0).getDate();
+
+            const monthStr = String(month + 1).padStart(2, '0');
+            activeFilterStart = `${year}-${monthStr}-01`;
+            activeFilterEnd = `${year}-${monthStr}-${String(lastDay).padStart(2, '0')}`;
+
+            const labelBtn = document.getElementById('label-filter-rentang');
+            if (labelBtn) {
+                labelBtn.innerText = `${namaBulanIndo[month]} ${year}`;
+            }
+        }
 
         // Helper untuk mengunci/membuka scroll background secara universal
         function toggleBodyScroll(lock) {
@@ -957,7 +990,6 @@
                 
                 // JIKA DITAMBAHKAN DARI MENU KASIR (FIELD PENCARIAN AKTIF), OTOMATIS PILIH PELANGGAN TERSEBUT
                 const currentSearchVal = document.getElementById('search-pelanggan').value.trim();
-                // Kita cek apakah modal dibuka dari tombol tambah di kasir (ketika input pencarian berisi teks yang sama atau sedang aktif)
                 pilihPelanggan(newPel);
 
                 renderPelangganList();
@@ -1530,12 +1562,15 @@
         function bukaModalRangePicker() {
             selectedStartDate = activeFilterStart;
             selectedEndDate = activeFilterEnd;
+            
+            // Selalu set kalender ke bulan & tahun saat ini secara default
+            currCalDate = new Date();
+            
             if (activeFilterStart) {
                 const parts = activeFilterStart.split('-');
                 currCalDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1);
-            } else {
-                currCalDate = new Date();
             }
+
             renderCalendarGrid();
             document.getElementById('modal-range-picker').classList.remove('hidden');
             toggleBodyScroll(true);
@@ -1616,6 +1651,29 @@
             renderCalendarGrid();
         }
 
+        /* Pintasan Opsi Bulan Ini & Semua Tanggal */
+        function pilihFilterBulanIni() {
+            const now = new Date();
+            currCalDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            
+            selectedStartDate = `${y}-${m}-01`;
+            selectedEndDate = `${y}-${m}-${String(lastDay.getDate()).padStart(2, '0')}`;
+
+            renderCalendarGrid();
+        }
+
+        function pilihFilterSemuaTanggal() {
+            selectedStartDate = null;
+            selectedEndDate = null;
+            renderCalendarGrid();
+        }
+
         function updateCalStatusText() {
             const info = document.getElementById('cal-status-info');
             if (selectedStartDate && selectedEndDate) {
@@ -1623,7 +1681,7 @@
             } else if (selectedStartDate) {
                 info.innerText = `Awal: ${formatDateShort(selectedStartDate)} (Pilih Selesai)`;
             } else {
-                info.innerText = 'Pilih rentang tanggal';
+                info.innerText = 'Semua Tanggal Dipilih';
             }
         }
 
@@ -1640,7 +1698,18 @@
             const btnReset = document.getElementById('btn-reset-rentang');
 
             if (activeFilterStart && activeFilterEnd) {
-                if (activeFilterStart === activeFilterEnd) {
+                const startParts = activeFilterStart.split('-');
+                const endParts = activeFilterEnd.split('-');
+                const now = new Date();
+                const curY = String(now.getFullYear());
+                const curM = String(now.getMonth() + 1).padStart(2, '0');
+                const lastDayCurM = String(new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()).padStart(2, '0');
+
+                // Cek apakah rentang yang dipilih tepat 1 bulan berjalan penuh
+                if (startParts[0] === curY && startParts[1] === curM && startParts[2] === '01' &&
+                    endParts[0] === curY && endParts[1] === curM && endParts[2] === lastDayCurM) {
+                    labelBtn.innerText = `${namaBulanIndo[now.getMonth()]} ${curY}`;
+                } else if (activeFilterStart === activeFilterEnd) {
                     labelBtn.innerText = formatDateShort(activeFilterStart);
                 } else {
                     labelBtn.innerText = `${formatDateShort(activeFilterStart)} - ${formatDateShort(activeFilterEnd)}`;
