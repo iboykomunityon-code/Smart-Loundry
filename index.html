@@ -268,9 +268,9 @@
                         </div>
                         <button onclick="bukaModalRangePicker()" class="px-3 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition">
                             <i class="fa-regular fa-calendar-days text-blue-600"></i>
-                            <span id="label-filter-rentang">Semua Tanggal</span>
+                            <span id="label-filter-rentang">30 Hari Terakhir</span>
                         </button>
-                        <button onclick="resetFilterRentang()" id="btn-reset-rentang" class="hidden px-2.5 py-2 bg-red-50 text-red-600 rounded-lg text-xs hover:bg-red-100 transition" title="Reset Rentang Tanggal"><i class="fa-solid fa-xmark"></i></button>
+                        <button onclick="resetFilterRentang()" id="btn-reset-rentang" class="px-2.5 py-2 bg-red-50 text-red-600 rounded-lg text-xs hover:bg-red-100 transition" title="Tampilkan Semua Tanggal"><i class="fa-solid fa-xmark"></i></button>
                     </div>
 
                     <div id="list-riwayat" class="space-y-2 text-sm"></div>
@@ -356,17 +356,12 @@
                     <div id="cal-month-year-label" class="font-bold text-sm tracking-wide">Desember 2026</div>
                     <button onclick="nextCalMonth()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-slate-300"><i class="fa-solid fa-chevron-right text-xs"></i></button>
                 </div>
-
-                <!-- Tombol Opsi Cepat -->
-                <div class="flex space-x-2 border-b border-slate-700/60 pb-2">
-                    <button onclick="pilihFilterBulanIni()" class="flex-1 py-1.5 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded-lg text-xs font-semibold border border-blue-500/30 transition flex items-center justify-center space-x-1">
-                        <i class="fa-solid fa-calendar-day text-[10px]"></i>
-                        <span>Bulan Ini</span>
-                    </button>
-                    <button onclick="pilihFilterSemuaTanggal()" class="flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold border border-slate-600 transition flex items-center justify-center space-x-1">
-                        <i class="fa-solid fa-list text-[10px]"></i>
-                        <span>Semua Tanggal</span>
-                    </button>
+                
+                <!-- Quick Preset Options -->
+                <div class="grid grid-cols-3 gap-1.5 text-[11px]">
+                    <button onclick="pilihPresetQuick('30hari')" class="py-1.5 px-2 bg-slate-700/60 hover:bg-slate-700 rounded-lg font-medium text-slate-200 transition text-center">30 Hari Terakhir</button>
+                    <button onclick="pilihPresetQuick('bulan_ini')" class="py-1.5 px-2 bg-slate-700/60 hover:bg-slate-700 rounded-lg font-medium text-slate-200 transition text-center">Bulan Ini</button>
+                    <button onclick="pilihPresetQuick('semua')" class="py-1.5 px-2 bg-slate-700/60 hover:bg-slate-700 rounded-lg font-medium text-slate-200 transition text-center">Semua Tanggal</button>
                 </div>
 
                 <div class="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400 uppercase">
@@ -404,25 +399,11 @@
                         <textarea id="quick-pel-alamat" placeholder="Alamat..." rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"></textarea>
                     </div>
                     <div class="flex space-x-2 pt-2">
-                        <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold">Simpan Pelanggan</button>
-                        <button type="button" onclick="tutupModalQuickPelanggan()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold">Batal</button>
+                        <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Simpan</button>
+                        <button type="button" id="btn-hapus-pelanggan-modal" onclick="hapusPelangganDariModal()" class="hidden bg-red-50 text-red-600 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-red-100 transition"><i class="fa-solid fa-trash"></i> Hapus</button>
+                        <button type="button" onclick="tutupModalQuickPelanggan()" class="bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm font-semibold">Batal</button>
                     </div>
                 </form>
-            </div>
-        </div>
-
-        <!-- MODAL DETAIL PELANGGAN -->
-        <div id="modal-detail-pelanggan" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 hidden">
-            <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-xl space-y-3 max-h-[85vh] overflow-y-auto">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <h3 class="font-bold text-sm text-slate-900">Detail Pelanggan</h3>
-                    <button onclick="tutupModalDetailPelanggan()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
-                </div>
-                <div id="content-detail-pelanggan" class="space-y-2 text-xs"></div>
-                <div class="pt-2 flex space-x-2">
-                    <button id="pelanggan-btn-hapus" type="button" class="flex-1 bg-red-50 text-red-600 py-2 rounded-lg font-semibold text-xs"><i class="fa-solid fa-trash"></i> Hapus</button>
-                    <button id="pelanggan-btn-edit" type="button" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold text-xs"><i class="fa-solid fa-pen"></i> Edit</button>
-                </div>
             </div>
         </div>
 
@@ -447,25 +428,11 @@
                         </div>
                     </div>
                     <div class="flex space-x-2 pt-2">
-                        <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold">Simpan Layanan</button>
-                        <button type="button" onclick="tutupModalQuickLayanan()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold">Batal</button>
+                        <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Simpan</button>
+                        <button type="button" id="btn-hapus-layanan-modal" onclick="hapusLayananDariModal()" class="hidden bg-red-50 text-red-600 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-red-100 transition"><i class="fa-solid fa-trash"></i> Hapus</button>
+                        <button type="button" onclick="tutupModalQuickLayanan()" class="bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm font-semibold">Batal</button>
                     </div>
                 </form>
-            </div>
-        </div>
-
-        <!-- MODAL DETAIL LAYANAN -->
-        <div id="modal-detail-layanan" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 hidden">
-            <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-xl space-y-3 max-h-[85vh] overflow-y-auto">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <h3 class="font-bold text-sm text-slate-900">Detail Layanan</h3>
-                    <button onclick="tutupModalDetailLayanan()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
-                </div>
-                <div id="content-detail-layanan" class="space-y-2 text-xs"></div>
-                <div class="pt-2 flex space-x-2">
-                    <button id="layanan-btn-hapus" type="button" class="flex-1 bg-red-50 text-red-600 py-2 rounded-lg font-semibold text-xs"><i class="fa-solid fa-trash"></i> Hapus</button>
-                    <button id="layanan-btn-edit" type="button" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold text-xs"><i class="fa-solid fa-pen"></i> Edit</button>
-                </div>
             </div>
         </div>
 
@@ -545,12 +512,30 @@
 
         const namaBulanIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
+        function formatDateYYYYMMDD(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function setDefault30DaysFilter() {
+            const today = new Date();
+            const startDate = new Date();
+            startDate.setDate(today.getDate() - 29);
+
+            activeFilterStart = formatDateYYYYMMDD(startDate);
+            activeFilterEnd = formatDateYYYYMMDD(today);
+            
+            selectedStartDate = activeFilterStart;
+            selectedEndDate = activeFilterEnd;
+        }
+
+        setDefault30DaysFilter();
+
         window.addEventListener('firebase-ready', async () => {
             db = window.db;
             rtdb = window.fbRTDB;
-
-            // Set filter riwayat secara default ke Bulan Ini saat inisialisasi
-            setDefaultMonthFilter();
 
             await seedDefaultDataIfNeeded();
             loadLogoFromDatabase();
@@ -563,24 +548,6 @@
             }
         });
 
-        // Mengatur default filter riwayat ke bulan saat ini
-        function setDefaultMonthFilter() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const lastDay = new Date(year, month + 1, 0).getDate();
-
-            const monthStr = String(month + 1).padStart(2, '0');
-            activeFilterStart = `${year}-${monthStr}-01`;
-            activeFilterEnd = `${year}-${monthStr}-${String(lastDay).padStart(2, '0')}`;
-
-            const labelBtn = document.getElementById('label-filter-rentang');
-            if (labelBtn) {
-                labelBtn.innerText = `${namaBulanIndo[month]} ${year}`;
-            }
-        }
-
-        // Helper untuk mengunci/membuka scroll background secara universal
         function toggleBodyScroll(lock) {
             if (lock) {
                 document.body.classList.add('modal-open');
@@ -929,24 +896,26 @@
         }
 
         function bukaModalQuickPelanggan(nama = '') {
-            tutupModalDetailPelanggan();
             document.getElementById('quick-pel-id').value = '';
             document.getElementById('quick-pel-nama').value = nama;
             document.getElementById('quick-pel-telp').value = '';
             document.getElementById('quick-pel-alamat').value = '';
             document.getElementById('pelanggan-modal-title').innerText = 'Tambahkan Pelanggan';
+            document.getElementById('btn-hapus-pelanggan-modal').classList.add('hidden');
             document.getElementById('dropdown-pelanggan').classList.add('hidden');
             document.getElementById('modal-quick-pelanggan').classList.remove('hidden');
             toggleBodyScroll(true);
         }
 
-        function editPelangganModal(id, nama, telp, alamat) {
-            tutupModalDetailPelanggan();
+        function editPelangganModal(id) {
+            const p = pelangganCache[id];
+            if (!p) return;
             document.getElementById('quick-pel-id').value = id;
-            document.getElementById('quick-pel-nama').value = nama;
-            document.getElementById('quick-pel-telp').value = telp === '-' ? '' : telp;
-            document.getElementById('quick-pel-alamat').value = alamat === '-' ? '' : alamat;
-            document.getElementById('pelanggan-modal-title').innerText = 'Tambahkan Pelanggan';
+            document.getElementById('quick-pel-nama').value = p.nama || '';
+            document.getElementById('quick-pel-telp').value = p.telp === '-' ? '' : (p.telp || '');
+            document.getElementById('quick-pel-alamat').value = p.alamat === '-' ? '' : (p.alamat || '');
+            document.getElementById('pelanggan-modal-title').innerText = 'Edit Pelanggan';
+            document.getElementById('btn-hapus-pelanggan-modal').classList.remove('hidden');
             document.getElementById('modal-quick-pelanggan').classList.remove('hidden');
             toggleBodyScroll(true);
         }
@@ -987,9 +956,6 @@
                 }
 
                 tutupModalQuickPelanggan();
-                
-                // JIKA DITAMBAHKAN DARI MENU KASIR (FIELD PENCARIAN AKTIF), OTOMATIS PILIH PELANGGAN TERSEBUT
-                const currentSearchVal = document.getElementById('search-pelanggan').value.trim();
                 pilihPelanggan(newPel);
 
                 renderPelangganList();
@@ -1057,51 +1023,24 @@
             }
 
             container.innerHTML = filtered.map(p => `
-                <div onclick="bukaDetailPelanggan('${p._fbKey}')" class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-between items-center cursor-pointer hover:bg-blue-50/50 transition">
+                <div onclick="editPelangganModal('${p._fbKey}')" class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-between items-center cursor-pointer hover:bg-blue-50/50 transition">
                     <div class="overflow-hidden pr-2 flex-1">
                         <div class="font-bold text-slate-900">${p.nama}</div>
                         <div class="text-xs text-slate-500 truncate max-w-full">${p.telp} | ${p.alamat}</div>
-                    </div>
-                    <div class="text-slate-400 text-xs">
-                        <i class="fa-solid fa-chevron-right"></i>
                     </div>
                 </div>
             `).join('');
         }
 
-        function bukaDetailPelanggan(id) {
-            const p = pelangganCache[id];
-            if (!p) return;
-
-            const contentHtml = `
-                <div class="space-y-2">
-                    <div class="font-bold text-sm text-slate-900 border-b border-slate-100 pb-1">
-                        ${p.nama}
-                    </div>
-                    <div class="text-slate-600"><strong>No. Telp / WA:</strong> ${p.telp}</div>
-                    <div class="text-slate-600"><strong>Alamat Lengkap:</strong><br><span class="text-slate-800">${p.alamat || '-'}</span></div>
-                </div>
-            `;
-
-            document.getElementById('content-detail-pelanggan').innerHTML = contentHtml;
-            document.getElementById('pelanggan-btn-hapus').setAttribute('onclick', `hapusPelangganDariModal('${p._fbKey}')`);
-            document.getElementById('pelanggan-btn-edit').setAttribute('onclick', `editPelangganModal('${p._fbKey}', '${p.nama}', '${p.telp}', '${p.alamat}')`);
-
-            document.getElementById('modal-detail-pelanggan').classList.remove('hidden');
-            toggleBodyScroll(true);
-        }
-
-        function tutupModalDetailPelanggan() {
-            document.getElementById('modal-detail-pelanggan').classList.add('hidden');
-            toggleBodyScroll(false);
-        }
-
-        async function hapusPelangganDariModal(id) {
-            if(!confirm('Hapus pelanggan ini?')) return;
+        async function hapusPelangganDariModal() {
+            const id = document.getElementById('quick-pel-id').value;
+            if (!id) return;
+            if (!confirm('Yakin ingin menghapus pelanggan ini?')) return;
             try {
                 await rtdb.remove(rtdb.ref(db, 'pelanggan/' + id));
-                tutupModalDetailPelanggan();
+                tutupModalQuickPelanggan();
                 renderPelangganList();
+                alert('Pelanggan berhasil dihapus!');
             } catch (err) {
                 alert('Gagal menghapus pelanggan: ' + err.message);
             }
@@ -1130,23 +1069,25 @@
         }
 
         function bukaModalQuickLayanan() {
-            tutupModalDetailLayanan();
             document.getElementById('quick-lay-id').value = '';
             document.getElementById('quick-lay-nama').value = '';
             document.getElementById('quick-lay-harga').value = '';
             document.getElementById('quick-lay-satuan').value = '';
             document.getElementById('layanan-modal-title').innerText = 'Tambahkan Layanan';
+            document.getElementById('btn-hapus-layanan-modal').classList.add('hidden');
             document.getElementById('modal-quick-layanan').classList.remove('hidden');
             toggleBodyScroll(true);
         }
 
-        function editLayananModal(id, nama, harga, satuan) {
-            tutupModalDetailLayanan();
+        function editLayananModal(id) {
+            const l = layananCache[id];
+            if (!l) return;
             document.getElementById('quick-lay-id').value = id;
-            document.getElementById('quick-lay-nama').value = nama;
-            document.getElementById('quick-lay-harga').value = harga;
-            document.getElementById('quick-lay-satuan').value = satuan || 'Kg';
-            document.getElementById('layanan-modal-title').innerText = 'Tambahkan Layanan';
+            document.getElementById('quick-lay-nama').value = l.nama || '';
+            document.getElementById('quick-lay-harga').value = l.harga || '';
+            document.getElementById('quick-lay-satuan').value = l.satuan || 'Kg';
+            document.getElementById('layanan-modal-title').innerText = 'Edit Layanan';
+            document.getElementById('btn-hapus-layanan-modal').classList.remove('hidden');
             document.getElementById('modal-quick-layanan').classList.remove('hidden');
             toggleBodyScroll(true);
         }
@@ -1212,15 +1153,12 @@
             }
             container.innerHTML = allLayananData.map((l) => `
                 <div class="draggable-item bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between items-center" data-id="${l._id}">
-                    <div class="flex items-center space-x-2.5 flex-1 cursor-pointer" onclick="bukaDetailLayanan('${l._id}')">
+                    <div class="flex items-center space-x-2.5 flex-1 cursor-pointer" onclick="editLayananModal('${l._id}')">
                         <span class="drag-handle text-slate-400 hover:text-slate-600 px-1 py-2" onclick="event.stopPropagation()"><i class="fa-solid fa-grip-vertical"></i></span>
                         <div>
                             <div class="font-bold text-slate-900">${l.nama}</div>
                             <div class="text-xs text-blue-600 font-medium">Rp ${l.harga.toLocaleString()} / ${l.satuan || 'Kg'}</div>
                         </div>
-                    </div>
-                    <div class="text-slate-400 text-xs pl-2 cursor-pointer" onclick="bukaDetailLayanan('${l._id}')">
-                        <i class="fa-solid fa-chevron-right"></i>
                     </div>
                 </div>
             `).join('');
@@ -1228,40 +1166,16 @@
             initDragAndDropLayanan();
         }
 
-        function bukaDetailLayanan(id) {
-            const l = layananCache[id];
-            if (!l) return;
-
-            const contentHtml = `
-                <div class="space-y-2">
-                    <div class="font-bold text-sm text-slate-900 border-b border-slate-100 pb-1">
-                        ${l.nama}
-                    </div>
-                    <div class="text-slate-600"><strong>Harga Dasar:</strong> Rp ${l.harga.toLocaleString()}</div>
-                    <div class="text-slate-600"><strong>Satuan:</strong> ${l.satuan || 'Kg'}</div>
-                </div>
-            `;
-
-            document.getElementById('content-detail-layanan').innerHTML = contentHtml;
-            document.getElementById('layanan-btn-hapus').setAttribute('onclick', `hapusLayananDariModal('${l._id}')`);
-            document.getElementById('layanan-btn-edit').setAttribute('onclick', `editLayananModal('${l._id}', '${l.nama}', ${l.harga}, '${l.satuan || 'Kg'}')`);
-
-            document.getElementById('modal-detail-layanan').classList.remove('hidden');
-            toggleBodyScroll(true);
-        }
-
-        function tutupModalDetailLayanan() {
-            document.getElementById('modal-detail-layanan').classList.add('hidden');
-            toggleBodyScroll(false);
-        }
-
-        async function hapusLayananDariModal(id) {
-            if(!confirm('Hapus layanan ini?')) return;
+        async function hapusLayananDariModal() {
+            const id = document.getElementById('quick-lay-id').value;
+            if (!id) return;
+            if (!confirm('Yakin ingin menghapus layanan ini?')) return;
             try {
                 await rtdb.remove(rtdb.ref(db, 'layanan/' + id));
-                tutupModalDetailLayanan();
+                tutupModalQuickLayanan();
                 renderLayananList();
                 renderLayananSelect();
+                alert('Layanan berhasil dihapus!');
             } catch (err) {
                 alert('Gagal menghapus layanan: ' + err.message);
             }
@@ -1398,17 +1312,13 @@
             if (!selectedPelangganObj) { alert('Pilih pelanggan!'); return; }
             if (cart.length === 0) { alert('Keranjang kosong!'); return; }
 
-            // Jika tombol Simpan yang ditekan, berikan konfirmasi terlebih dahulu
             if (!shouldPrint) {
                 if (!confirm('Simpan transaksi ini ke riwayat?')) return;
             }
 
             const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
             const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const dateStrYYYYMMDD = `${year}-${month}-${day}`;
+            const dateStrYYYYMMDD = formatDateYYYYMMDD(now);
 
             const transaksi = {
                 id: 'TRX-' + Date.now().toString().slice(-6),
@@ -1437,7 +1347,6 @@
                 renderCart();
                 renderRiwayatList();
 
-                // Berpindah ke tab riwayat HANYA JIKA tombol Simpan yang ditekan
                 if (!shouldPrint) {
                     switchTab('riwayat');
                 }
@@ -1446,7 +1355,6 @@
             }
         }
 
-        // FUNGSI CETAK STRUK STRUKTURAL (NAMA BOLD & ALAMAT PANJANG RATA KANAN)
         function cetakStruk(trx) {
             document.getElementById('print-info').innerHTML = `
                 <div style="display: flex; justify-content: space-between;"><span>No. Nota :</span><span>${trx.id}</span></div>
@@ -1506,11 +1414,7 @@
                     const val = childSnap.val();
                     val._fbKey = childSnap.key;
                     if (!val.tanggalYMD && val.timestamp) {
-                        const d = new Date(val.timestamp);
-                        const y = d.getFullYear();
-                        const m = String(d.getMonth() + 1).padStart(2, '0');
-                        const day = String(d.getDate()).padStart(2, '0');
-                        val.tanggalYMD = `${y}-${m}-${day}`;
+                        val.tanggalYMD = formatDateYYYYMMDD(new Date(val.timestamp));
                     }
                     allRiwayatData.push(val);
                     if (val.id) riwayatCache[val.id] = val;
@@ -1562,15 +1466,12 @@
         function bukaModalRangePicker() {
             selectedStartDate = activeFilterStart;
             selectedEndDate = activeFilterEnd;
-            
-            // Selalu set kalender ke bulan & tahun saat ini secara default
-            currCalDate = new Date();
-            
             if (activeFilterStart) {
                 const parts = activeFilterStart.split('-');
                 currCalDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1);
+            } else {
+                currCalDate = new Date();
             }
-
             renderCalendarGrid();
             document.getElementById('modal-range-picker').classList.remove('hidden');
             toggleBodyScroll(true);
@@ -1588,6 +1489,28 @@
 
         function nextCalMonth() {
             currCalDate.setMonth(currCalDate.getMonth() + 1);
+            renderCalendarGrid();
+        }
+
+        function pilihPresetQuick(type) {
+            const today = new Date();
+            if (type === '30hari') {
+                const startDate = new Date();
+                startDate.setDate(today.getDate() - 29);
+                selectedStartDate = formatDateYYYYMMDD(startDate);
+                selectedEndDate = formatDateYYYYMMDD(today);
+            } else if (type === 'bulan_ini') {
+                const y = today.getFullYear();
+                const m = today.getMonth();
+                const firstDay = new Date(y, m, 1);
+                const lastDay = new Date(y, m + 1, 0);
+                selectedStartDate = formatDateYYYYMMDD(firstDay);
+                selectedEndDate = formatDateYYYYMMDD(lastDay);
+            } else if (type === 'semua') {
+                selectedStartDate = null;
+                selectedEndDate = null;
+            }
+            currCalDate = new Date();
             renderCalendarGrid();
         }
 
@@ -1651,29 +1574,6 @@
             renderCalendarGrid();
         }
 
-        /* Pintasan Opsi Bulan Ini & Semua Tanggal */
-        function pilihFilterBulanIni() {
-            const now = new Date();
-            currCalDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-            const y = now.getFullYear();
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            
-            selectedStartDate = `${y}-${m}-01`;
-            selectedEndDate = `${y}-${m}-${String(lastDay.getDate()).padStart(2, '0')}`;
-
-            renderCalendarGrid();
-        }
-
-        function pilihFilterSemuaTanggal() {
-            selectedStartDate = null;
-            selectedEndDate = null;
-            renderCalendarGrid();
-        }
-
         function updateCalStatusText() {
             const info = document.getElementById('cal-status-info');
             if (selectedStartDate && selectedEndDate) {
@@ -1681,7 +1581,7 @@
             } else if (selectedStartDate) {
                 info.innerText = `Awal: ${formatDateShort(selectedStartDate)} (Pilih Selesai)`;
             } else {
-                info.innerText = 'Semua Tanggal Dipilih';
+                info.innerText = 'Semua Tanggal';
             }
         }
 
@@ -1695,29 +1595,20 @@
             activeFilterEnd = selectedEndDate || selectedStartDate;
 
             const labelBtn = document.getElementById('label-filter-rentang');
-            const btnReset = document.getElementById('btn-reset-rentang');
 
             if (activeFilterStart && activeFilterEnd) {
-                const startParts = activeFilterStart.split('-');
-                const endParts = activeFilterEnd.split('-');
-                const now = new Date();
-                const curY = String(now.getFullYear());
-                const curM = String(now.getMonth() + 1).padStart(2, '0');
-                const lastDayCurM = String(new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()).padStart(2, '0');
-
-                // Cek apakah rentang yang dipilih tepat 1 bulan berjalan penuh
-                if (startParts[0] === curY && startParts[1] === curM && startParts[2] === '01' &&
-                    endParts[0] === curY && endParts[1] === curM && endParts[2] === lastDayCurM) {
-                    labelBtn.innerText = `${namaBulanIndo[now.getMonth()]} ${curY}`;
+                const today = new Date();
+                const startDate = new Date();
+                startDate.setDate(today.getDate() - 29);
+                if (activeFilterStart === formatDateYYYYMMDD(startDate) && activeFilterEnd === formatDateYYYYMMDD(today)) {
+                    labelBtn.innerText = '30 Hari Terakhir';
                 } else if (activeFilterStart === activeFilterEnd) {
                     labelBtn.innerText = formatDateShort(activeFilterStart);
                 } else {
                     labelBtn.innerText = `${formatDateShort(activeFilterStart)} - ${formatDateShort(activeFilterEnd)}`;
                 }
-                btnReset.classList.remove('hidden');
             } else {
                 labelBtn.innerText = 'Semua Tanggal';
-                btnReset.classList.add('hidden');
             }
 
             tutupModalRangePicker();
@@ -1731,7 +1622,6 @@
             selectedEndDate = null;
 
             document.getElementById('label-filter-rentang').innerText = 'Semua Tanggal';
-            document.getElementById('btn-reset-rentang').classList.add('hidden');
             filterRiwayat();
         }
 
