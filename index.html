@@ -173,7 +173,10 @@
                         </button>
                     </div>
                     <div class="relative">
-                        <input type="text" id="search-pelanggan" oninput="filterPelanggan()" placeholder="Ketik nama / no. telp..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="search-pelanggan" onfocus="this.select()" oninput="filterPelanggan()" placeholder="Ketik nama / no. telp..." class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="button" id="btn-clear-search-pelanggan" onclick="resetSelectedPelanggan()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
                         <div id="dropdown-pelanggan" class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg hidden max-h-40 overflow-y-auto z-20"></div>
                     </div>
                     <div id="selected-pelanggan-info" class="mt-2 text-xs text-blue-600 font-medium hidden"></div>
@@ -223,7 +226,10 @@
                     <div class="flex space-x-2">
                         <div class="relative flex-1">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
-                            <input type="text" id="search-pelanggan-list" oninput="filterPelangganList()" placeholder="Cari nama/telp..." class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="text" id="search-pelanggan-list" onfocus="this.select()" oninput="filterPelangganList()" placeholder="Cari nama/telp..." class="w-full pl-8 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button type="button" id="btn-clear-search-pelanggan-list" onclick="resetSearchPelangganList()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                            </button>
                         </div>
                         <select id="sort-pelanggan" onchange="filterPelangganList()" class="px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="terbaru">Terbaru</option>
@@ -857,10 +863,16 @@
         async function filterPelanggan() {
             const queryText = document.getElementById('search-pelanggan').value.trim();
             const drop = document.getElementById('dropdown-pelanggan');
-            if (!queryText) {
+            const btnClear = document.getElementById('btn-clear-search-pelanggan');
+
+            if (queryText.length > 0) {
+                btnClear.classList.remove('hidden');
+            } else {
+                btnClear.classList.add('hidden');
                 drop.classList.add('hidden');
                 return;
             }
+
             const snap = await rtdb.get(rtdb.ref(db, 'pelanggan'));
             let filtered = [];
             if (snap.exists()) {
@@ -893,6 +905,24 @@
                 `;
                 drop.classList.remove('hidden');
             }
+        }
+
+        function resetSelectedPelanggan() {
+            selectedPelangganObj = null;
+            const input = document.getElementById('search-pelanggan');
+            input.value = '';
+            document.getElementById('btn-clear-search-pelanggan').classList.add('hidden');
+            document.getElementById('dropdown-pelanggan').classList.add('hidden');
+            document.getElementById('selected-pelanggan-info').classList.add('hidden');
+            input.focus();
+        }
+
+        function resetSearchPelangganList() {
+            const input = document.getElementById('search-pelanggan-list');
+            input.value = '';
+            document.getElementById('btn-clear-search-pelanggan-list').classList.add('hidden');
+            filterPelangganList();
+            input.focus();
         }
 
         function bukaModalQuickPelanggan(nama = '') {
@@ -968,6 +998,7 @@
         function pilihPelanggan(p) {
             selectedPelangganObj = p;
             document.getElementById('search-pelanggan').value = p.nama;
+            document.getElementById('btn-clear-search-pelanggan').classList.remove('hidden');
             document.getElementById('dropdown-pelanggan').classList.add('hidden');
             const info = document.getElementById('selected-pelanggan-info');
             info.innerText = `Terpilih: ${p.nama} (${p.telp})`;
@@ -1000,9 +1031,17 @@
         }
 
         function filterPelangganList() {
-            const keyword = document.getElementById('search-pelanggan-list').value.toLowerCase().trim();
+            const searchInput = document.getElementById('search-pelanggan-list');
+            const keyword = searchInput.value.toLowerCase().trim();
+            const btnClearList = document.getElementById('btn-clear-search-pelanggan-list');
             const sortOption = document.getElementById('sort-pelanggan').value;
             const container = document.getElementById('list-pelanggan-data');
+
+            if (keyword.length > 0) {
+                btnClearList.classList.remove('hidden');
+            } else {
+                btnClearList.classList.add('hidden');
+            }
 
             let filtered = allPelangganData;
             if (keyword) {
@@ -1040,7 +1079,6 @@
                 await rtdb.remove(rtdb.ref(db, 'pelanggan/' + id));
                 tutupModalQuickPelanggan();
                 renderPelangganList();
-                alert('Pelanggan berhasil dihapus!');
             } catch (err) {
                 alert('Gagal menghapus pelanggan: ' + err.message);
             }
@@ -1175,7 +1213,6 @@
                 tutupModalQuickLayanan();
                 renderLayananList();
                 renderLayananSelect();
-                alert('Layanan berhasil dihapus!');
             } catch (err) {
                 alert('Gagal menghapus layanan: ' + err.message);
             }
@@ -1340,9 +1377,7 @@
                 }
 
                 cart = [];
-                selectedPelangganObj = null;
-                document.getElementById('search-pelanggan').value = '';
-                document.getElementById('selected-pelanggan-info').classList.add('hidden');
+                resetSelectedPelanggan();
                 document.getElementById('input-qty').value = '1';
                 renderCart();
                 renderRiwayatList();
